@@ -49,11 +49,15 @@ def localK():
 
 	return E/(1-nu**2)*np.array(KE)
 
-mesh = rect_grid(1,1,5,5)
-print(mesh)
-coord = np.array([[-1, -1], [1, -1], [1, 1], [-1, 1]])
-kl = uel4nquad(coord,0.3,1)
-print(kl)
 
-x = np.array([[.5]*10]*10)
-FE(10,10,x,3)
+
+
+
+#mesh = rect_grid(1,1,5,5)
+#print(mesh)
+#coord = np.array([[-1, -1], [1, -1], [1, 1], [-1, 1]])
+#kl = uel4nquad(coord,0.3,1)
+#print(kl)
+
+#x = np.array([[.5]*10]*10)
+#FE(10,10,x,3)

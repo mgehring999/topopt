@@ -49,17 +49,18 @@ c = np.matmul(U,r.T)
 initial parameters for pyomo model
 """
 volfrac = 0.5
-
+xmin = 0.2
 """
 Pyomo Rules
 """
 # volume fraction
-def vol_rule(m):
-	return sum(m.x)==m.f
+def vol_rule(m,volfrac):
+	return sum([m.x[j] for j in m.elems])==volfrac
 
 # FE equation
 def FKU_rule(m, i):
     return sum([m.K[(i,j)]*m.u[j] for j in m.eq]) == m.F[i]
+
 
 """
 Pyomo Topo Model
@@ -70,12 +71,12 @@ model = pyo.ConcreteModel(name="topo")
 model.elems = pyo.Set(initialize=elements[:,0],domain=pyo.NonNegativeIntegers)
 model.eq = pyo.Set(initialize=range(neq),domain=pyo.NonNegativeIntegers)
 
-model.x = pyo.Var(model.elems,domain=pyo.UnitInterval,initialize=volfrac/nelem)
-#model.f = pyo.Param(initialize=volfrac)
+model.x = pyo.Var(model.elems,bounds=(xmin,1),initialize=volfrac/nelem)
 model.K = pyo.Param(model.eq,model.eq,initialize=dict(KG.todok()),default=0,mutable=True)
 model.F = pyo.Param(model.eq,initialize=dict(enumerate(RHSG)))
 model.u = pyo.Var(model.eq,initialize=1)
 
 model.FKU_con = pyo.Constraint(model.eq, rule=FKU_rule)
-#model.vol_con = pyo.Constraint(rule=sum(model.x)==volfrac)
+model.vol_con = pyo.Constraint(rule=vol_rule(model,volfrac))
+
 model.pprint()

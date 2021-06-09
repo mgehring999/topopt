@@ -29,7 +29,6 @@ nu = 0.3
 elem_nu = np.ones((nelem,1))*nu
 mats = np.concatenate((x,elem_nu),axis=1)
 KG = ass.assembler(elements, mats, nodes, neq, DME)
-print(elements)
 
 # load vector
 RHSG = ass.loadasem(loads, IBC, neq)
@@ -45,11 +44,13 @@ V = sum(x)
 r = np.matmul(KG.todense(),U)
 c = np.matmul(U,r.T)
 
+
 """
 initial parameters for pyomo model
 """
 volfrac = 0.5
 xmin = 0.2
+
 """
 Pyomo Rules
 """
@@ -61,6 +62,9 @@ def vol_rule(m,volfrac):
 def FKU_rule(m, i):
     return sum([m.K[(i,j)]*m.u[j] for j in m.eq]) == m.F[i]
 
+# compliance rule for objective
+def comp_rule(m):
+	return sum([sum([m.K[(i,j)]*m.u[j] for j in m.eq])*m.u[i] for i in m.eq])
 
 """
 Pyomo Topo Model
@@ -74,9 +78,10 @@ model.eq = pyo.Set(initialize=range(neq),domain=pyo.NonNegativeIntegers)
 model.x = pyo.Var(model.elems,bounds=(xmin,1),initialize=volfrac/nelem)
 model.K = pyo.Param(model.eq,model.eq,initialize=dict(KG.todok()),default=0,mutable=True)
 model.F = pyo.Param(model.eq,initialize=dict(enumerate(RHSG)))
-model.u = pyo.Var(model.eq,initialize=1)
+model.u = pyo.Var(model.eq,initialize=dict(enumerate(sp.sparse.linalg.spsolve(KG,RHSG))))
 
 model.FKU_con = pyo.Constraint(model.eq, rule=FKU_rule)
 model.vol_con = pyo.Constraint(rule=vol_rule(model,volfrac))
+model.obj = pyo.Objective(expr=comp_rule(model))
 
 model.pprint()

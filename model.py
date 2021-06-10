@@ -66,7 +66,7 @@ model = pyo.ConcreteModel(name="topo")
 model.elems = pyo.Set(initialize=elements[:,0],domain=pyo.NonNegativeIntegers)
 model.eq = pyo.Set(initialize=range(neq),domain=pyo.NonNegativeIntegers)
 
-model.x = pyo.Var(model.elems,bounds=(xmin,1),initialize=dict(enumerate(x)))
+model.x = pyo.Var(model.elems,bounds=(xmin,1),initialize=volfrac)
 model.K = pyo.Param(model.eq,model.eq,initialize=dict(KG.todok()),default=0,mutable=True)
 model.F = pyo.Param(model.eq,initialize=dict(enumerate(F)))
 model.u = pyo.Var(model.eq,initialize=dict(enumerate(sp.sparse.linalg.spsolve(KG,F))))

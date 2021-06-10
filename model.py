@@ -31,19 +31,10 @@ mats = np.concatenate((x,elem_nu),axis=1)
 KG = ass.assembler(elements, mats, nodes, neq, DME)
 
 # load vector
-RHSG = ass.loadasem(loads, IBC, neq)
+F = ass.loadasem(loads, IBC, neq)
 
 # deformations
-U = sp.sparse.linalg.spsolve(KG,RHSG)
-
-
-V0 = nelem
-V = sum(x)
-
-# compliance
-r = np.matmul(KG.todense(),U)
-c = np.matmul(U,r.T)
-
+U = sp.sparse.linalg.spsolve(KG,F)
 
 """
 initial parameters for pyomo model
@@ -75,10 +66,10 @@ model = pyo.ConcreteModel(name="topo")
 model.elems = pyo.Set(initialize=elements[:,0],domain=pyo.NonNegativeIntegers)
 model.eq = pyo.Set(initialize=range(neq),domain=pyo.NonNegativeIntegers)
 
-model.x = pyo.Var(model.elems,bounds=(xmin,1),initialize=volfrac/nelem)
+model.x = pyo.Var(model.elems,bounds=(xmin,1),initialize=dict(enumerate(x)))
 model.K = pyo.Param(model.eq,model.eq,initialize=dict(KG.todok()),default=0,mutable=True)
-model.F = pyo.Param(model.eq,initialize=dict(enumerate(RHSG)))
-model.u = pyo.Var(model.eq,initialize=dict(enumerate(sp.sparse.linalg.spsolve(KG,RHSG))))
+model.F = pyo.Param(model.eq,initialize=dict(enumerate(F)))
+model.u = pyo.Var(model.eq,initialize=dict(enumerate(sp.sparse.linalg.spsolve(KG,F))))
 
 model.FKU_con = pyo.Constraint(model.eq, rule=FKU_rule)
 model.vol_con = pyo.Constraint(rule=vol_rule(model,volfrac))

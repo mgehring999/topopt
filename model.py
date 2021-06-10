@@ -75,4 +75,5 @@ model.FKU_con = pyo.Constraint(model.eq, rule=FKU_rule)
 model.vol_con = pyo.Constraint(rule=vol_rule(model,volfrac))
 model.obj = pyo.Objective(expr=comp_rule(model))
 
-model.pprint()
+if __name__ == "__main__":
+	model.pprint()

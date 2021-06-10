@@ -3,5 +3,5 @@ from pyomo.opt import SolverFactory
 
 model.display()
 opt = SolverFactory("scip")
-result = opt.solve(model)
+result = opt.solve(model,tee=True)
 print(result)

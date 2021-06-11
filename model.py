@@ -10,7 +10,7 @@ import pyomo.environ as pyo
 """
 load meshed domain and assemble system of equations
 """
-folder = "./examples/mesh/"
+folder = "./mesh/"
 nodes, _, elements, loads = pre.readin(folder=folder)
 nelem = elements.shape[0]
 nnodes = nodes.shape[0]

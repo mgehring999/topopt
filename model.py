@@ -8,7 +8,7 @@ import scipy as sp
 import pyomo.environ as pyo
 
 """
-load meshed domain
+load meshed domain and assemble system of equations
 """
 folder = "./examples/mesh/"
 nodes, _, elements, loads = pre.readin(folder=folder)
@@ -19,28 +19,22 @@ nnodes = nodes.shape[0]
 DME , IBC , neq = ass.DME(nodes, elements)
 
 """
-Variables and parameters
+initial parameters for pyomo model
 """
-# construct material array for topology optimiziation
-x = np.ones((nelem,1))
+volfrac = 1
+xmin = 0.2
+nu = 0.3
+
+# construct inital material array for topology optimiziation
+x = np.ones((nelem,1))*volfrac
 
 # Stiffness Matrix
-nu = 0.3
 elem_nu = np.ones((nelem,1))*nu
 mats = np.concatenate((x,elem_nu),axis=1)
 KG = ass.assembler(elements, mats, nodes, neq, DME)
 
 # load vector
 F = ass.loadasem(loads, IBC, neq)
-
-# deformations
-U = sp.sparse.linalg.spsolve(KG,F)
-
-"""
-initial parameters for pyomo model
-"""
-volfrac = 0.5
-xmin = 0.2
 
 """
 Pyomo Rules
@@ -54,7 +48,21 @@ def FKU_rule(m, i):
     return sum([m.K[(i,j)]*m.u[j] for j in m.eq]) == m.F[i]
 
 # compliance rule for objective
-def comp_rule(m):
+def comp_rule(m,elements,nodes,neq,DME):
+
+	# update material definition
+	nelem = len(m.elems)
+	x = np.array([m.x[i].value for i in m.elems]).reshape((nelem,1))
+	elem_nu = np.ones((nelem,1))*0.3
+
+	# update stiffness matrix
+	mats = np.concatenate((x,elem_nu),axis=1)
+	KG = ass.assembler(elements, mats, nodes, neq, DME)
+
+	# assign valus to model
+	for i,val in KG.todok().items():
+		m.K[i] = val
+
 	return sum([sum([m.K[(i,j)]*m.u[j] for j in m.eq])*m.u[i] for i in m.eq])
 
 """
@@ -73,7 +81,7 @@ model.u = pyo.Var(model.eq,initialize=dict(enumerate(sp.sparse.linalg.spsolve(KG
 
 model.FKU_con = pyo.Constraint(model.eq, rule=FKU_rule)
 model.vol_con = pyo.Constraint(rule=vol_rule(model,volfrac))
-model.obj = pyo.Objective(expr=comp_rule(model))
+model.obj = pyo.Objective(expr=comp_rule(model,elements,nodes,neq,DME))
 
 if __name__ == "__main__":
 	model.pprint()

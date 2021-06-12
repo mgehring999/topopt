@@ -13,7 +13,7 @@ from mesh import rect_mesh
 """
 construct rectangular mesh
 """
-nodes,elements,loads = rect_mesh(2)
+nodes,elements,loads = rect_mesh(20)
 nelem = elements.shape[0]
 nnodes = nodes.shape[0]
 
@@ -28,7 +28,7 @@ DME , IBC , neq = ass.DME(nodes, elements)
 initial parameters for pyomo model
 """
 volfrac = 1
-xmin = 0.2
+xmin = 1e-3
 nu = 0.3
 penal = 3
 

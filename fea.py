@@ -8,7 +8,7 @@ import numpy as np
 # local packages
 from mesh import rect_mesh
 
-nodes,elements,loads = rect_mesh(2)
+nodes,elements,loads = rect_mesh(20)
 nelem = elements.shape[0]
 nnodes = nodes.shape[0]
 
@@ -22,8 +22,8 @@ DME , IBC , neq = ass.DME(nodes, elements)
 # construct material array for topology optimiziation
 volfrac = 1
 nu = 0.3
-elem_E0 = np.ones((nele,1))*volfrac
-elem_nu = np.ones((nele,1))*nu
+elem_E0 = np.ones((nelem,1))*volfrac
+elem_nu = np.ones((nelem,1))*nu
 mats = np.concatenate((elem_E0,elem_nu),axis=1)
 print(mats)
 

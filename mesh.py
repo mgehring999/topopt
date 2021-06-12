@@ -1,7 +1,7 @@
 import solidspy.preprocesor as pre
 import numpy as np
 
-def rect_mesh(ndiv,load_coord=(1,0),load_direct=(-1,0)):
+def rect_mesh(ndiv,load_coord=(1,0),load_direct=(0,-1)):
 	"""
 	ndiv: int, number of division along each side of the domain
 	load_coord: (x,y), coordinate of single force load

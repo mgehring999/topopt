@@ -7,13 +7,19 @@ import numpy as np
 import scipy as sp
 import pyomo.environ as pyo
 
+# local packages
+from mesh import rect_mesh
+
 """
-load meshed domain and assemble system of equations
+construct rectangular mesh
 """
-folder = "./mesh/"
-nodes, _, elements, loads = pre.readin(folder=folder)
+nodes,elements,loads = rect_mesh(2)
 nelem = elements.shape[0]
 nnodes = nodes.shape[0]
+
+print("++++++ node array +++++++\n",nodes)
+print("++++++ load array +++++++\n",loads)
+print("++++++ element array +++++++\n",elements)
 
 # assembly operator
 DME , IBC , neq = ass.DME(nodes, elements)
@@ -24,6 +30,7 @@ initial parameters for pyomo model
 volfrac = 1
 xmin = 0.2
 nu = 0.3
+penal = 3
 
 # construct inital material array for topology optimiziation
 x = np.ones((nelem,1))*volfrac
@@ -48,11 +55,11 @@ def FKU_rule(m, i):
     return sum([m.K[(i,j)]*m.u[j] for j in m.eq]) == m.F[i]
 
 # compliance rule for objective
-def comp_rule(m,elements,nodes,neq,DME):
+def comp_rule(m,elements,nodes,neq,DME,penal):
 
 	# update material definition
 	nelem = len(m.elems)
-	x = np.array([m.x[i].value for i in m.elems]).reshape((nelem,1))
+	x = np.array([m.x[i].value**penal for i in m.elems]).reshape((nelem,1))
 	elem_nu = np.ones((nelem,1))*0.3
 
 	# update stiffness matrix
@@ -81,7 +88,8 @@ model.u = pyo.Var(model.eq,initialize=dict(enumerate(sp.sparse.linalg.spsolve(KG
 
 model.FKU_con = pyo.Constraint(model.eq, rule=FKU_rule)
 model.vol_con = pyo.Constraint(rule=vol_rule(model,volfrac))
-model.obj = pyo.Objective(expr=comp_rule(model,elements,nodes,neq,DME))
+model.obj = pyo.Objective(expr=comp_rule(model,elements,nodes,neq,DME,penal),sense=1)
 
 if __name__ == "__main__":
-	model.pprint()
+	if nnodes < 30:
+		model.pprint()

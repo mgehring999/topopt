@@ -5,15 +5,22 @@ import solidspy.preprocesor as pre
 import matplotlib.pyplot as plt
 import numpy as np
 
-folder = "./examples/mesh/"
-nodes, _, elements, loads = pre.readin(folder=folder)
+# local packages
+from mesh import rect_mesh
+
+nodes,elements,loads = rect_mesh(2)
+nelem = elements.shape[0]
+nnodes = nodes.shape[0]
+
+print("++++++ node array +++++++\n",nodes)
+print("++++++ load array +++++++\n",loads)
+print("++++++ element array +++++++\n",elements)
 
 # assembly operator
 DME , IBC , neq = ass.DME(nodes, elements)
-nele = len(elements[:,0])
 
 # construct material array for topology optimiziation
-volfrac = 0.5
+volfrac = 1
 nu = 0.3
 elem_E0 = np.ones((nele,1))*volfrac
 elem_nu = np.ones((nele,1))*nu

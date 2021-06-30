@@ -39,10 +39,10 @@ vol = volfrac*V0
 # Stiffness Matrix
 elem_nu = np.ones((nelem,1))*nu
 mats = np.concatenate((x,elem_nu),axis=1)
-KG = ass.assembler(elements, mats, nodes, neq, DME)
+Kglob_init = ass.assembler(elements, mats, nodes, neq, DME)
 
 # load vector
-F = ass.loadasem(loads, IBC, neq)
+F_init = ass.loadasem(loads, IBC, neq)
 
 """
 Pyomo Rules
@@ -60,16 +60,16 @@ def comp_rule(m,elements,nodes,neq,DME,penal):
 
 	# update material definition
 	nelem = len(m.elems)
-	x = np.array([value(m.x[elem]**penal) for elem in m.elems]).reshape((nelem,1))
+	x = np.array([m.x[elem]**penal for elem in m.elems]).reshape((nelem,1))
 	elem_nu = np.ones((nelem,1))*0.3
 
 	# update stiffness matrix
 	mats = np.concatenate((x,elem_nu),axis=1)
-	KG = ass.assembler(elements, mats, nodes, neq, DME)
+	_KG = ass.assembler(elements, mats, nodes, neq, DME)
 
 	# assign values to model
-	for elem,val in KG.todok().items():
-		m.K[elem] = 0#val
+	for elem,val in _KG.todok().items():
+		m.K[elem] = val
 
 	return sum([sum([m.K[(row,col)]*m.u[col] for col in m.eq])*m.u[row] for row in m.eq])
 
@@ -82,9 +82,9 @@ model.elems = Set(initialize=elements[:,0],domain=NonNegativeIntegers)
 model.eq = Set(initialize=range(neq),domain=NonNegativeIntegers)
 
 model.x = Var(model.elems,bounds=(xmin,1),initialize=1)
-model.K = Param(model.eq,model.eq,initialize=0,default=0,mutable=True) #dict(KG.todok())
-model.F = Param(model.eq,initialize=dict(enumerate(F)))
-model.u = Var(model.eq,initialize=dict(enumerate(sp.sparse.linalg.spsolve(KG,F))))
+model.K = Param(model.eq,model.eq,initialize=dict(Kglob_init.todok()),default=0,mutable=True) 
+model.F = Param(model.eq,initialize=dict(enumerate(F_init)))
+model.u = Var(model.eq,initialize=dict(enumerate(sp.sparse.linalg.spsolve(Kglob_init,F_init))))
 
 model.FKU_con = Constraint(model.eq, rule=FKU_rule)
 model.vol_con = Constraint(rule=vol_rule(model,vol))

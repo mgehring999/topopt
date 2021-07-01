@@ -5,11 +5,13 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
 from matplotlib import cm
 import numpy as np
-import sys
+import sys, os
 
 # local packages
 from mesh import add_point_force, rect_mesh
+from decogo.solver.decogo import DecogoSolver
 
+#if __name__ == "__main__":
 # input arguments
 if len(sys.argv) < 5:
     sys.exit("no arguments passed, <volfrac> <ndivisions> <load_coordinate> <load_direction> needed")
@@ -32,6 +34,7 @@ volfrac = float(sys.argv[1])
 ndiv = int(sys.argv[2])
 load_coords = tuple([float(comp) for comp in sys.argv[3].split(",")])
 load_direction = tuple([float(comp) for comp in sys.argv[4].split(",")])
+solvername = "scip"
 
 # construct rectangular mesh
 nodes,elements = rect_mesh(ndiv)
@@ -42,12 +45,29 @@ loads = add_point_force(nodes,load_coords,load_direction)
 # assemble model
 model = assemble_model(nodes,elements,loads,volfrac)
 
-# solve model with scip
-opt = SolverFactory("ipopt")
-result = opt.solve(model,tee=True)
 
-# post process results
-x = np.array([model.x[i].value for i in model.elems])
+if solvername == "decogo":
+    # overwrite solver default settings and put the file in the working directory
+    with open('decogo.set', 'w') as file:
+        file.write('strategy = OA\n')
+        file.write('decomp_estimate_var_bounds = True')
+        file.close()
+
+    # create solver instance
+    solver = DecogoSolver()
+
+    # solve the model
+    solver.optimize(model)
+
+    os.remove('decogo.set') # remove settings file
+else:
+
+    # solve model with scip
+    opt = SolverFactory("ipopt")
+    result = opt.solve(model,tee=True)
+
+    # post process results
+    x = np.array([model.x[i].value for i in model.elems])
 
 # plot results
 fig,axs = plt.subplots()

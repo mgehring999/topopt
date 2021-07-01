@@ -7,7 +7,6 @@ def assemble(elements,mats,nodes,neq,DME,x,uel=None):
     for eq in range(neq):
         Kglob[eq] = [0]*neq
     nels = len(elements)
-    print(nels)
     for el in range(nels):
         kloc,ndof,_=ass.retriever(elements,mats,nodes,el,uel=uel)
         kloc = kloc.tolist()
@@ -18,7 +17,6 @@ def assemble(elements,mats,nodes,neq,DME,x,uel=None):
                 for col in range(ndof):
                     glob_col = dme[col]
                     if glob_col != -1:
-                        print(type(kloc[row][col]))
                         Kglob[glob_row][glob_col] = Kglob[glob_row][glob_col] +\
                                                     kloc[row][col]*x[el]
 

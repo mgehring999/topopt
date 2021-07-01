@@ -1,18 +1,22 @@
 # nlo-project
-nonlinear optimization class project
+This is a python implementation of a two-dimensional structural optimizitation problem as a MINLP (mixed-integer non-linear programm) written during summer term 2021 as a class project. 
 
-pip install pyomo
+## installation
+Install python requirements with pip
+```
+pip install -r requirements.txt
+```
 
-download scipOptSuite 7.0.0 and scipampl 7.0.0
+Download SCIPOptSuite 7.0.0 and scipampl 7.0.0 from scipopt.org
 install scipOptSuite and put scipampl binary in scipOptSuite\bin
 add \bin to PATH
 
+## usage
+Start the main script
+```
+py topo.py
+```
 
-
-## Model
-- global stiffness matrix
-- RHSG
-- deforms
-- compliance
-- volume
-- element stiffness
+## ToDo's
+- refactor rect_mesh interface
+- implement interface for arbitrary meshes and geometries

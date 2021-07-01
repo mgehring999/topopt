@@ -18,10 +18,11 @@ py topo.py <volfrac> <ndivisions>
 ```
 
 ## example
-This command starts the solver with a volume fraction constraint of 50% and 4 Elements (2x2 Elements)
+This command starts the solver with a volume fraction constraint of 50% and 4 Elements (2x2 Elements). A single force load of -1 in y-direction is applied on the node at the coordinate (1,1)
 ```
-py topo.py 0.5 2
+py topo.py 0.5 2 1,1 0,-1
 ```
 
 ## ToDo's
 - implement interface for arbitrary meshes and geometries
+- performance improvements

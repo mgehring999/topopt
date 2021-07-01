@@ -3,10 +3,10 @@ import sys, os
 
 # add Decogo source files to path
 # very important to do it before importing Decogo
-path = os.path.dirname(os.getcwd())
-sys.path.insert(0, path+"\decogo\decogo")
-from solver.decogo import Decogo
-input("enter")
+#path = r"C:\path\to\src
+#sys.path.insert(0, path)
+
+from decogo.solver.decogo import DecogoSolver
 
 # overwrite solver default settings and put the file in the working directory
 with open('decogo.set', 'w') as file:
@@ -15,7 +15,7 @@ with open('decogo.set', 'w') as file:
     file.close()
 
 # create solver instance
-solver = Decogo()
+solver = DecogoSolver()
 
 # solve the model
 solver.optimize(model)

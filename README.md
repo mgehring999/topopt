@@ -14,9 +14,14 @@ add \bin to PATH
 ## usage
 Start the main script
 ```
-py topo.py
+py topo.py <volfrac> <ndivisions>
+```
+
+## example
+This command starts the solver with a volume fraction constraint of 50% and 4 Elements (2x2 Elements)
+```
+py topo.py 0.5 2
 ```
 
 ## ToDo's
-- refactor rect_mesh interface
 - implement interface for arbitrary meshes and geometries

@@ -2,6 +2,8 @@ from model import assemble_model
 from pyomo.opt import SolverFactory
 import solidspy.postprocesor as pos
 import matplotlib.pyplot as plt
+from matplotlib.colors import LinearSegmentedColormap
+from matplotlib import cm
 import numpy as np
 import sys
 
@@ -41,16 +43,19 @@ loads = add_point_force(nodes,load_coords,load_direction)
 model = assemble_model(nodes,elements,loads,volfrac)
 
 # solve model with scip
-opt = SolverFactory("scip")
+opt = SolverFactory("ipopt")
 result = opt.solve(model,tee=True)
 
 # post process results
 x = np.array([model.x[i].value for i in model.elems])
-u = np.array([model.u[i].value for i in model.eq])
-print(x)
 
 # plot results
 fig,axs = plt.subplots()
-axs.imshow(x.reshape((ndiv,ndiv)))
+
+colors = ["white", "grey","grey","red"]
+nodes = [0.0, 0.4, 0.6,1.0]
+cmap2 = LinearSegmentedColormap.from_list("mycmap", list(zip(nodes, colors)))
+
+axs.imshow(x.reshape((ndiv,ndiv)),cmap=cmap2)
 
 plt.show()

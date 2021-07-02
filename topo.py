@@ -34,7 +34,7 @@ if __name__ == "__main__": # decogo needs this protection
     ndiv = int(sys.argv[2])
     load_coords = tuple([float(comp) for comp in sys.argv[3].split(",")])
     load_direction = tuple([float(comp) for comp in sys.argv[4].split(",")])
-    solvername = "decogo"
+    solvername = "ipopt"
 
     # construct rectangular mesh
     nodes,elements = rect_mesh(ndiv)
@@ -61,14 +61,13 @@ if __name__ == "__main__": # decogo needs this protection
         os.remove('decogo.set') # remove settings file
     else:
 
-        # solve model with scip
-        opt = SolverFactory("scip")
+        # solve model with ipopt
+        opt = SolverFactory("ipopt")
         result = opt.solve(model,tee=True)
 
         # post process results
         x = np.array([model.x[i].value for i in model.elems])
-        u = np.array([model.u[i].value for i in model.eq])
-        print(x)
+
 
     # plot results
     fig,axs = plt.subplots()

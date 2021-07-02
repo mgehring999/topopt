@@ -71,6 +71,7 @@ def assemble_model(nodes,elements,loads,volfrac):
 	model.K = Param(initialize=Kglob_init,default=0,mutable=True,within=Any) 
 	model.F = Param(model.eq,initialize=dict(enumerate(F_init)),within=Any)
 	model.u = Var(model.eq,initialize=dict(enumerate(sp.sparse.linalg.spsolve(Kglob_init,F_init))))
+	model.pprint()
 
 	model.FKU_con = Constraint(model.eq, rule=FKU_rule)
 	model.vol_con = Constraint(rule=vol_rule(model,vol))

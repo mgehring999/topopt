@@ -1,4 +1,4 @@
-# nlo-project
+# global-topopt
 This is a python implementation of a two-dimensional structural optimizitation problem as a MINLP (mixed-integer non-linear programm) written during summer term 2021 as a class project. 
 
 ## installation
@@ -14,7 +14,7 @@ add \bin to PATH
 ## usage
 Start the main script
 ```
-py topo.py <volfrac> <ndivisions>
+py topo.py <volfrac> <ndivisions> <load_xcoord,load_ycoord> <load_xmagnitude,load_ymagnitude>
 ```
 
 ## example

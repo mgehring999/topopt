@@ -34,7 +34,7 @@ if __name__ == "__main__": # decogo needs this protection
     ndiv = int(sys.argv[2])
     load_coords = tuple([float(comp) for comp in sys.argv[3].split(",")])
     load_direction = tuple([float(comp) for comp in sys.argv[4].split(",")])
-    solvername = "ipopt"
+    solvername = "decogo"
 
     # construct rectangular mesh
     nodes,elements = rect_mesh(ndiv)

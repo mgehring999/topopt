@@ -52,7 +52,7 @@ x = np.array([model.x[i].value for i in model.elems])
 # plot results
 fig,axs = plt.subplots()
 
-colors = ["white", "grey","grey","red"]
+colors = ["white", "grey","grey","blue"]
 nodes = [0.0, 0.4, 0.6,1.0]
 cmap2 = LinearSegmentedColormap.from_list("mycmap", list(zip(nodes, colors)))
 

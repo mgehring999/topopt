@@ -38,7 +38,14 @@ def assemble_model(nodes,elements,loads,volfrac):
 		return sum([m.x[j] for j in m.elems]) == vol 
 
 	# FE equation
-	def FKU_rule(m, i):
+	def FKU_rule(m, i,penal=3):
+
+		# update material definition
+		x = [m.x[elem]**penal for elem in m.elems]
+
+		# update stiffness matrix and assign to model
+		m.K = assemble(elements, mats, nodes, neq, DME,x)
+
 		return sum([m.K.value[i][j]*m.u[j] for j in m.eq]) == m.F[i]
 
 	# compliance rule for objective
@@ -61,12 +68,12 @@ def assemble_model(nodes,elements,loads,volfrac):
 	model.eq = Set(initialize=range(neq),domain=NonNegativeIntegers)
 
 	model.x = Var(model.elems,bounds=(1e-5,1),initialize=1)
-	model.K = Param(initialize=Kglob_init,default=0,mutable=True) 
-	model.F = Param(model.eq,initialize=dict(enumerate(F_init)))
+	model.K = Param(initialize=Kglob_init,default=0,mutable=True,within=Any) 
+	model.F = Param(model.eq,initialize=dict(enumerate(F_init)),within=Any)
 	model.u = Var(model.eq,initialize=dict(enumerate(sp.sparse.linalg.spsolve(Kglob_init,F_init))))
 
 	model.FKU_con = Constraint(model.eq, rule=FKU_rule)
 	model.vol_con = Constraint(rule=vol_rule(model,vol))
-	model.obj = Objective(expr=comp_rule(model,elements,mats,nodes,neq,DME),sense=1)
+	model.obj = Objective(expr=comp_rule(model,elements,mats,nodes,neq,DME),sense=minimize)
 
 	return model

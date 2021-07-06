@@ -6,11 +6,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 # local packages
-from mesh import rect_mesh
+from mesh import add_point_force, rect_mesh
 
-nodes,elements,loads = rect_mesh(20)
+nodes,elements = rect_mesh(20)
 nelem = elements.shape[0]
 nnodes = nodes.shape[0]
+
+# add loads 
+loads = add_point_force(nodes,(1,0),(0,-1))
 
 print("++++++ node array +++++++\n",nodes)
 print("++++++ load array +++++++\n",loads)

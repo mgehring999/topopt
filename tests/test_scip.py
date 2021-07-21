@@ -1,4 +1,4 @@
-from simple import model
+from .simple import model
 from pyomo.opt import SolverFactory
 
 model.display()

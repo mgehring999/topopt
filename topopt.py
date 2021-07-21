@@ -61,41 +61,50 @@ class Mesh:
     def add_support(self,edge = "left",dof = "all"):
         # copied code ..
         if edge == "left":
-            if dof == "all":
-                dof = [1,2]
-            elif dof is not int or list:
+            if dof is not int or list:
                 ValueError("DOFs are specified as int or list of ints")
 
-            for i in dof:
-                print(i)
-                self.nodes = self._set_bc(self.nodes,"x",-1,i)
-        
-        elif edge == "right":
             if dof == "all":
                 dof = [1,2]
-            elif dof is not int or list:
+                for i in dof:
+                    self.nodes = self._set_bc(self.nodes,"x",-1,i)
+            else:
+                self.nodes = self._set_bc(self.nodes,"x",-1,dof)
+
+        if edge == "right":
+            if dof is not int or list:
                 ValueError("DOFs are specified as int or list of ints")
 
-            for i in dof:
-                self.nodes = self._set_bc(self.nodes,"x",1,i)
-            
-        elif edge == "top":
             if dof == "all":
                 dof = [1,2]
-            elif dof is not int or list:
+                for i in dof:
+                    self.nodes = self._set_bc(self.nodes,"x",1,i)
+            else:
+                self.nodes = self._set_bc(self.nodes,"x",1,dof)
+
+        if edge == "top":
+            if dof is not int or list:
                 ValueError("DOFs are specified as int or list of ints")
 
-            for i in dof:
-                self.nodes = self._set_bc(self.nodes,"y",1,i)
-            
-        elif edge == "bottom" or edge=="bot":
             if dof == "all":
                 dof = [1,2]
-            elif dof is not int or list:
+                for i in dof:
+                    self.nodes = self._set_bc(self.nodes,"y",1,i)
+            else:
+                self.nodes = self._set_bc(self.nodes,"y",1,dof)
+
+        if edge == "bot":
+            if dof is not int or list:
                 ValueError("DOFs are specified as int or list of ints")
 
-            for i in dof:
-                self.nodes = self._set_bc(self.nodes,"y",-1,i)
+            if dof == "all":
+                dof = [1,2]
+                for i in dof:
+                    self.nodes = self._set_bc(self.nodes,"y",-1,i)
+            else:
+                self.nodes = self._set_bc(self.nodes,"y",-1,dof)
+
+
 
     def load_mesh(self):
         # TODO
@@ -116,15 +125,3 @@ class OptimModel:
     def __init__(self):
         pass
         #self.FEmodel = 
-
-if __name__ == "__main__":
-    mesh = Mesh()
-    mesh.rect_mesh(2)
-    mesh.nodes = mesh._set_bc(mesh.nodes,"x",-1,1)
-    mesh.nodes = mesh._set_bc(mesh.nodes,"x",-1,2)
-    print(mesh.nodes)
-
-    mesh = Mesh()
-    mesh.rect_mesh(2)
-    mesh.add_support()
-    print(mesh.nodes)

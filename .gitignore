@@ -5,3 +5,4 @@ results.json
 decogo/
 matlab/
 dist/
+*egg-info

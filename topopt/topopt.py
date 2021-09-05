@@ -1,4 +1,6 @@
 from solidspy.preprocesor import rect_grid
+import solidspy.assemutil as ass
+
 import numpy as np
 
 class Mesh:
@@ -24,6 +26,8 @@ class Mesh:
         x,y,self.elements = rect_grid(2,2,ndiv,ndiv)
 
         self.nnodes = len(x)
+        self.nelem = len(self.elements[:,0])
+
         x = x.reshape((self.nnodes,1))
         y = y.reshape((self.nnodes,1))
         
@@ -60,6 +64,7 @@ class Mesh:
 
     def add_support(self,edge = "left",dof = "all"):
         # copied code ..
+        # TODO: separate Mesh and BoundaryCondition
         if edge == "left":
             if dof is not int or list:
                 ValueError("DOFs are specified as int or list of ints")
@@ -104,24 +109,75 @@ class Mesh:
             else:
                 self.nodes = self._set_bc(self.nodes,"y",-1,dof)
 
-
-
     def load_mesh(self):
         # TODO
         pass
 
-class StructuralModel:
-    """this holds all data necessary for the finite element model"""
-    def __init__(self,mesh):
+class Material:
+    def __init__(self):
+        self.nu = None
+        self.youngs = None
+        
+    def set_structural_params(self,youngs,nu):
+        self.youngs = youngs
+        self.nu = nu
+
+class PhysicalModel:
+    """
+    A `PhysicalModel` combines the information about the discretized domain, its physical properties, the boundaries and all system matrices. 
+
+    Parameters
+    ==========
+    mesh: `Mesh` Provides information about the mesh
+    mat: `Materal` Provides the material constants
+
+    """
+    def __init__(self,mesh,mat):
         self.mesh = mesh
+        self.material = mat
+
+        # set instance variables 
         self.Kglob = None
         self.Fglob = None
+    
+        self.mats = self._set_materials()
+        self.assemble_system()
 
+    def _set_materials(self):
+        mats = np.ones((self.mesh.nelem,2))
+        mats[:,0] *= self.material.youngs
+        mats[:,1] *= self.material.nu
+        return mats
 
+    def assemble_system(self):
+        self.DME , self.IBC , self.neq = ass.DME(self.mesh.nodes, self.mesh.elements)
+        self.Kglob = self.update_system_matrix()
+
+    def update_system_matrix(self,x=None):
+        if not x:
+            x = [1]*self.mesh.nelem
+
+        # initialize empty system matrix as list of lists
+        Kglob = [0]*self.neq
+        for eq in range(self.neq):
+            Kglob[eq] = [0]*self.neq
+
+        # update system matrix with optimiziation variable
+        for el in range(self.mesh.nelem):
+            kloc,ndof,_=ass.retriever(self.mesh.elements,self.mats,self.mesh.nodes,el)
+            kloc = kloc.tolist()
+            dme = self.DME[el,:ndof]
+            for row in range(ndof):
+                glob_row=dme[row]
+                if glob_row != -1:
+                    for col in range(ndof):
+                        glob_col = dme[col]
+                        if glob_col != -1:
+                            Kglob[glob_row][glob_col] = Kglob[glob_row][glob_col] +\
+                                                        kloc[row][col]*x[el]
+        return Kglob
 
 class OptimModel:
-    """idk"""
-
-    def __init__(self):
-        pass
-        #self.FEmodel = 
+    def __init__(self,physical_model,volfrac):
+        self.pmodel = physical_model
+        self.volfrac = volfrac

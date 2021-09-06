@@ -1,9 +1,16 @@
-from topopt.topopt import Mesh, OptimModel, PhysicalModel, Material, StructuralOptim
+from topopt.topopt import Mesh, PhysicalModel, Material, StructuralOptim
 import pytest
 
-def test_2x2():
+@pytest.mark.parametrize("ndiv, volfrac",[
+    (2,0.5),
+    (3,0.5),
+    (5,1),
+    (5,0.5),
+    (8,0.5),
+])
+def test_parameters(ndiv,volfrac):
     mesh = Mesh()
-    mesh.rect_mesh(2)
+    mesh.rect_mesh(ndiv)
     mesh.add_support()
 
     mat = Material()
@@ -11,4 +18,7 @@ def test_2x2():
 
     pmodel = PhysicalModel(mesh,mat)
     
-    optmizer = StructuralOptim(pmodel,0.5,3)
+    optimizer = StructuralOptim(pmodel,volfrac,3)
+    optimizer.run()
+
+    assert optimizer.result

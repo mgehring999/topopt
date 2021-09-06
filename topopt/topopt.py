@@ -186,12 +186,16 @@ class OptimModel:
     def __init__(self,physical_model,volfrac):
         self.pmodel = physical_model
         self.vol = volfrac*sum(self.pmodel.x)
+        self.result = None
 
         self.model = ConcreteModel(name="topo")
 
         self.model.elems = Set(initialize=self.pmodel.mesh.elements[:,0],domain=NonNegativeIntegers)
         self.model.eq = Set(initialize=range(self.pmodel.neq),domain=NonNegativeIntegers)
 
+    def run(self):
+        self.solver = SolverFactory("ipopt")
+        self.result = self.solver.solve(self.model,tee=True)
 
 class StructuralOptim(OptimModel):
     def __init__(self, physical_model, volfrac, penal):
@@ -200,8 +204,6 @@ class StructuralOptim(OptimModel):
         self._init_system_matrices()
         self._make_constraints()
         self._make_objective()
-
-        self.model.pprint()
 
     def _init_system_matrices(self):
         self.model.x = Var(self.model.elems,bounds=(1e-5,1),initialize=1)

@@ -1,4 +1,4 @@
-from topopt.topopt import Mesh
+from topopt.mesh import Mesh
 import numpy as np
 import pytest
 

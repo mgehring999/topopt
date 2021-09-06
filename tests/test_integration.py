@@ -1,4 +1,6 @@
-from topopt.topopt import Mesh, PhysicalModel, Material, StructuralOptim
+from topopt.topopt import StructuralOptim
+from topopt.physical import PhysicalModel, Material
+from topopt.mesh import Mesh
 import pytest
 
 @pytest.mark.parametrize("ndiv, volfrac",[

@@ -2,6 +2,9 @@ from solidspy.preprocesor import rect_grid
 import solidspy.assemutil as ass
 
 import numpy as np
+import scipy as sp
+
+from pyomo.environ import *
 
 class Mesh:
     """Mesh creates or loads and saves the information about the meshed domain
@@ -139,9 +142,13 @@ class PhysicalModel:
         # set instance variables 
         self.Kglob = None
         self.Fglob = None
-    
+        self.x = [1]*self.mesh.nelem
+
         self.mats = self._set_materials()
         self.assemble_system()
+
+        # TODO: implement loads
+        self.Fglob = [1]*self.neq
 
     def _set_materials(self):
         mats = np.ones((self.mesh.nelem,2))
@@ -153,9 +160,7 @@ class PhysicalModel:
         self.DME , self.IBC , self.neq = ass.DME(self.mesh.nodes, self.mesh.elements)
         self.Kglob = self.update_system_matrix()
 
-    def update_system_matrix(self,x=None):
-        if not x:
-            x = [1]*self.mesh.nelem
+    def update_system_matrix(self):
 
         # initialize empty system matrix as list of lists
         Kglob = [0]*self.neq
@@ -174,10 +179,61 @@ class PhysicalModel:
                         glob_col = dme[col]
                         if glob_col != -1:
                             Kglob[glob_row][glob_col] = Kglob[glob_row][glob_col] +\
-                                                        kloc[row][col]*x[el]
+                                                        kloc[row][col]*self.x[el]
         return Kglob
 
 class OptimModel:
     def __init__(self,physical_model,volfrac):
         self.pmodel = physical_model
-        self.volfrac = volfrac
+        self.vol = volfrac*sum(self.pmodel.x)
+
+        self.model = ConcreteModel(name="topo")
+
+        self.model.elems = Set(initialize=self.pmodel.mesh.elements[:,0],domain=NonNegativeIntegers)
+        self.model.eq = Set(initialize=range(self.pmodel.neq),domain=NonNegativeIntegers)
+
+
+class StructuralOptim(OptimModel):
+    def __init__(self, physical_model, volfrac, penal):
+        super().__init__(physical_model, volfrac)
+        self.penal = penal
+        self._init_system_matrices()
+        self._make_constraints()
+        self._make_objective()
+
+        self.model.pprint()
+
+    def _init_system_matrices(self):
+        self.model.x = Var(self.model.elems,bounds=(1e-5,1),initialize=1)
+        self.model.K = Param(initialize=self.pmodel.Kglob,default=0,mutable=True,within=Any) 
+        self.model.F = Param(self.model.eq,initialize=dict(enumerate(self.pmodel.Fglob)),within=Any)
+        self.model.u = Var(self.model.eq,initialize=dict(enumerate(sp.sparse.linalg.spsolve(self.pmodel.Kglob,self.pmodel.Fglob))))
+
+    def _make_constraints(self):
+        self.model.FKU_con = Constraint(self.model.eq, rule=self._FKU_rule)
+        self.model.vol_con = Constraint(rule=self._vol_rule)
+        
+    def _make_objective(self):
+        self.model.obj = Objective(expr=self._comp_rule(self.model),sense=minimize)
+
+    def _comp_rule(self,m):
+        # update material definition
+        self.pmodel.x = [m.x[elem]**self.penal for elem in m.elems]
+
+        # update stiffness matrix and assign to model
+        m.K = self.pmodel.update_system_matrix()
+        return sum([sum([m.K.value[row][col]*m.u[col] for col in m.eq])*m.u[row] for row in m.eq])
+
+    # volume fraction
+    def _vol_rule(self,m):
+        return sum([m.x[j] for j in m.elems]) == self.vol 
+
+    def _FKU_rule(self,m, i):
+
+        # update material definition
+        self.pmodel.x = [m.x[elem]**self.penal for elem in m.elems]
+
+        # update stiffness matrix and assign to model
+        m.K = self.pmodel.update_system_matrix()
+
+        return sum([m.K.value[i][j]*m.u[j] for j in m.eq]) == m.F[i]

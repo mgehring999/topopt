@@ -1,4 +1,4 @@
-from topopt.topopt import Mesh, OptimModel, PhysicalModel, Material
+from topopt.topopt import Mesh, OptimModel, PhysicalModel, Material, StructuralOptim
 import pytest
 
 def test_2x2():
@@ -11,4 +11,4 @@ def test_2x2():
 
     pmodel = PhysicalModel(mesh,mat)
     
-    optmizer = OptimModel(pmodel,0.5)
+    optmizer = StructuralOptim(pmodel,0.5,3)

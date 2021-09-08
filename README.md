@@ -1,10 +1,11 @@
-# global-topopt
-This is a python implementation of a two-dimensional structural optimizitation problem as a MINLP (mixed-integer non-linear programm) written during summer term 2021 as a class project. 
+# topopt
+This is a python implementation of a two-dimensional structural optimizitation framework written during summer term 2021 as a class project. 
 
 ## installation
 Install python requirements with pip
 ```
 pip install -r requirements.txt
+py setup.py install
 ```
 
 Download SCIPOptSuite 7.0.0 and scipampl 7.0.0 from scipopt.org

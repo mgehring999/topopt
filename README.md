@@ -25,10 +25,10 @@ py topo.py 0.5 20 1,0 0,-1
 ```
 
 The result is the follwing structure
-![400 Element Example as MINLP](/images/400elements_global.png)
+![400 Element Example as MINLP](/docs/images/400elements_global.png)
 
 The same setup in ANSYS leads to a different result. ANSYS uses a local optimiziation scheme.
-![400 Element Example in ANSYS](/images/400elements_local.png)
+![400 Element Example in ANSYS](/docs/images/400elements_local.png)
 
 
 ## ToDo's

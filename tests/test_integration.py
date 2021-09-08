@@ -1,6 +1,6 @@
 from topopt.topopt import StructuralOptim
 from topopt.physical import PhysicalModel, Material
-from topopt.mesh import Mesh
+from topopt.mesh import Displacement, Load, Mesh
 import pytest
 
 @pytest.mark.parametrize("ndiv, volfrac",[
@@ -13,12 +13,17 @@ import pytest
 def test_parameters(ndiv,volfrac):
     mesh = Mesh()
     mesh.rect_mesh(ndiv)
-    mesh.add_support()
+
+    loads = Load(mesh)
+    loads.add_by_coord((1,1),(0,-1))
+
+    support = Displacement()
+    support.add_by_edge("left","all")
 
     mat = Material()
     mat.set_structural_params(2.1e5,.3)
 
-    pmodel = PhysicalModel(mesh,mat)
+    pmodel = PhysicalModel(mesh,mat,support,loads)
     
     optimizer = StructuralOptim(pmodel,volfrac,3)
     optimizer.run()

@@ -11,20 +11,26 @@ class PhysicalModel:
     mat: `Materal` Provides the material constants
 
     """
-    def __init__(self,mesh,mat):
+    def __init__(self,mesh,mat,bcs,loads):
         self.mesh = mesh
         self.material = mat
+        self.boundary_conditions = bcs
+        self.loads = loads
 
         # set instance variables 
         self.Kglob = None
         self.Fglob = None
         self.x = [1]*self.mesh.nelem
+        
+        # apply boundary conditions
+        self.mesh = self.boundary_conditions.apply(self.mesh)
+        
+        # apply loads
+        self.loads.apply(self.mesh)
 
+        # assemble everything 
         self.mats = self._set_materials()
         self.assemble_system()
-
-        # TODO: implement loads
-        self.Fglob = [1]*self.neq
 
     def _set_materials(self):
         mats = np.ones((self.mesh.nelem,2))
@@ -35,6 +41,7 @@ class PhysicalModel:
     def assemble_system(self):
         self.DME , self.IBC , self.neq = ass.DME(self.mesh.nodes, self.mesh.elements)
         self.Kglob = self.update_system_matrix()
+        self.Fglob = ass.loadasem(self.loads.loads,self.IBC,self.neq)
 
     def update_system_matrix(self):
 

@@ -31,13 +31,77 @@ class Mesh:
         
         # node numbering
         nnum = np.arange(self.nnodes)
-        nnum = nnum.reshape((self.nnodes,1))
+        self.nnum = nnum.reshape((self.nnodes,1))
 
         # init bc array, no bcs initially
         bc_init = np.zeros((self.nnodes,2))
 
         # concat nodes array
-        self.nodes = np.concatenate((nnum,x,y,bc_init),axis=1)
+        self.nodes = np.concatenate((self.nnum,x,y,bc_init),axis=1)
+
+
+    def load_mesh(self):
+        # TODO
+        pass
+
+class BoundaryCondition:
+    def __init__(self):
+        self.bc_by_coord = []
+        self.bc_by_comp = []
+        self.bc_by_edge = []
+
+    def add_by_coord(self,coordinate,direction):
+        """adds boundary condition to single node via cooridnate
+        ## Parameters
+        coordinate: tuple (x,y) 
+        direction: tuple (xmag,ymag)
+        """
+        self.bc_by_coord.append((coordinate,direction))
+	
+    def add_by_component(self):
+        # TODO: implement when mesh interface is built
+        pass
+    def add_by_edge(self,edge,dof):
+        """adds boundary condition to whole edge via keywords
+
+        ## Parameters
+        edge: `str`: "left", "right", "top", "bot"
+        dof: `int` or `str`: 1,2 or "all"
+        """
+        self.bc_by_edge.append((edge,dof))
+
+    def apply(self,mesh):
+        # Dummy method that gets overwritten
+        pass
+
+class Load(BoundaryCondition):
+    def __init__(self, mesh):
+        super().__init__()
+
+        load_columns = np.zeros((mesh.nnodes,2))
+        node_numbering_column = mesh.nnum.reshape((mesh.nnodes,1))
+        self.loads = np.concatenate((node_numbering_column,load_columns),axis=1)
+
+    def apply(self,mesh):
+        # iterate over all loads to be applied
+        for load_coord,load_direction in self.bc_by_coord:
+            # iterate over loads array 
+            for node,lrow in zip(mesh.nodes,self.loads):
+                xcoord = node[1]
+                ycoord = node[2]
+                if np.isclose(xcoord,load_coord[0]) and np.isclose(ycoord,load_coord[1]):
+                    lrow[1] = load_direction[0]
+                    lrow[2] = load_direction[1]
+
+
+class Displacement(BoundaryCondition):
+    def __init__(self):
+        super().__init__()
+
+    def apply(self,mesh):
+        for edge,dof in self.bc_by_edge:
+            mesh = self._add_support(mesh,edge=edge,dof=dof)
+        return mesh
 
     def _set_bc(self,nodes,coord,value,dof):
         
@@ -60,9 +124,8 @@ class Mesh:
                     ValueError("unknown DOF")
         return nodes
 
-    def add_support(self,edge = "left",dof = "all"):
+    def _add_support(self,mesh,edge = "left",dof = "all"):
         # copied code ..
-        # TODO: separate Mesh and BoundaryCondition
         if edge == "left":
             if dof is not int or list:
                 ValueError("DOFs are specified as int or list of ints")
@@ -70,9 +133,9 @@ class Mesh:
             if dof == "all":
                 dof = [1,2]
                 for i in dof:
-                    self.nodes = self._set_bc(self.nodes,"x",-1,i)
+                    mesh.nodes = self._set_bc(mesh.nodes,"x",-1,i)
             else:
-                self.nodes = self._set_bc(self.nodes,"x",-1,dof)
+                mesh.nodes = self._set_bc(mesh.nodes,"x",-1,dof)
 
         if edge == "right":
             if dof is not int or list:
@@ -81,9 +144,9 @@ class Mesh:
             if dof == "all":
                 dof = [1,2]
                 for i in dof:
-                    self.nodes = self._set_bc(self.nodes,"x",1,i)
+                    mesh.nodes = self._set_bc(mesh.nodes,"x",1,i)
             else:
-                self.nodes = self._set_bc(self.nodes,"x",1,dof)
+                mesh.nodes = self._set_bc(mesh.nodes,"x",1,dof)
 
         if edge == "top":
             if dof is not int or list:
@@ -92,9 +155,9 @@ class Mesh:
             if dof == "all":
                 dof = [1,2]
                 for i in dof:
-                    self.nodes = self._set_bc(self.nodes,"y",1,i)
+                    mesh.nodes = self._set_bc(mesh.nodes,"y",1,i)
             else:
-                self.nodes = self._set_bc(self.nodes,"y",1,dof)
+                mesh.nodes = self._set_bc(mesh.nodes,"y",1,dof)
 
         if edge == "bot":
             if dof is not int or list:
@@ -103,33 +166,7 @@ class Mesh:
             if dof == "all":
                 dof = [1,2]
                 for i in dof:
-                    self.nodes = self._set_bc(self.nodes,"y",-1,i)
+                    mesh.nodes = self._set_bc(mesh.nodes,"y",-1,i)
             else:
-                self.nodes = self._set_bc(self.nodes,"y",-1,dof)
-
-    def load_mesh(self):
-        # TODO
-        pass
-
-def add_point_force(nodes,load_coord,load_direction):
-	
-	# init loads array, no loads initially
-	nnodes = len(nodes)
-	load_init = np.zeros((nnodes,2))
-	nnum = np.arange(nnodes)
-
-	loads = np.concatenate((nnum.reshape((nnodes,1)),load_init),axis=1)
-
-	for node,lrow in zip(nodes,loads):
-		xcoord = node[1]
-		ycoord = node[2]
-		if np.isclose(xcoord,load_coord[0]) and np.isclose(ycoord,load_coord[1]):
-			lrow[1] = load_direction[0]
-			lrow[2] = load_direction[1]
-
-	# test if loads were added
-	if not loads[:,1:3].any():
-		raise ValueError("No loads were applied, check ndivs or load coordinates")
-
-	return loads
-
+                mesh.nodes = self._set_bc(mesh.nodes,"y",-1,dof)
+        return mesh

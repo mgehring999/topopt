@@ -5,3 +5,5 @@ results.json
 decogo/
 matlab/
 dist/
+*egg-info
+build/

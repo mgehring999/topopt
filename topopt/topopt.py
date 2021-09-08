@@ -1,5 +1,7 @@
 import numpy as np
 import scipy as sp
+import matplotlib.pyplot as plt
+from matplotlib.colors import LinearSegmentedColormap
 
 from pyomo.environ import *
 
@@ -17,6 +19,7 @@ class OptimModel:
     def run(self):
         self.solver = SolverFactory("ipopt")
         self.result = self.solver.solve(self.model,tee=True)
+        self.pmodel.x = np.array([self.model.x[i].value for i in self.model.elems])
 
 class StructuralOptim(OptimModel):
     def __init__(self, physical_model, volfrac, penal):
@@ -60,3 +63,19 @@ class StructuralOptim(OptimModel):
         m.K = self.pmodel.update_system_matrix()
 
         return sum([m.K.value[i][j]*m.u[j] for j in m.eq]) == m.F[i]
+
+
+class Visualizer:
+    def __init__(self,pmodel):
+        self.model = pmodel
+        colors = ["white", "grey","grey","blue"]
+        nodes = [0.0, 0.4, 0.6,1.0]
+        self.cmap = LinearSegmentedColormap.from_list("mycmap", list(zip(nodes, colors)))   
+
+    def show_result(self):
+        ndiv = int(np.sqrt(len(self.model.x)))
+        x = self.model.x.reshape((ndiv,ndiv))
+        self.fig = plt.figure()
+        self.axs = plt.gca()
+        self.axs.imshow(x,cmap=self.cmap)
+        plt.show()

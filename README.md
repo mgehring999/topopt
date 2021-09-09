@@ -53,5 +53,6 @@ The same setup in ANSYS leads to a different result.
 
 ## ToDo's
 - implement interface for arbitrary meshes and geometries
-- logging 
 - save and load resultfile
+- implement post processing of results (FEA for final design)
+- implement stress minimization 

@@ -56,3 +56,4 @@ The same setup in ANSYS leads to a different result.
 - save and load resultfile
 - implement post processing of results (FEA for final design)
 - implement stress minimization 
+- implement [decogo](https://github.com/ouyang-w-19/decogo) and scip

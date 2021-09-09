@@ -21,7 +21,7 @@ This script models a quadratic plate clamped on the left side and loaded with a 
     from topopt.mesh import Displacement, Load, Mesh
 
     volfrac = 0.5
-    ndiv = 10
+    ndiv = 20
 
     mesh = Mesh()
     mesh.rect_mesh(ndiv)
@@ -37,7 +37,7 @@ This script models a quadratic plate clamped on the left side and loaded with a 
 
     pmodel = PhysicalModel(mesh,mat,support,loads)
 
-    optimizer = StructuralOptim(pmodel,volfrac,3)
+    optimizer = StructuralOptim(pmodel,volfrac,5)
     optimizer.run()
 
     visu = Visualizer(pmodel)

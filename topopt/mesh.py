@@ -33,8 +33,8 @@ class Mesh:
         self.nnodes = len(x)
         self.nelem = len(self.elements[:,0])
 
-        x = x.reshape((self.nnodes,1))
-        y = y.reshape((self.nnodes,1))
+        self.x = x.reshape((self.nnodes,1))
+        self.y = y.reshape((self.nnodes,1))
         
         # node numbering
         nnum = np.arange(self.nnodes)
@@ -44,7 +44,7 @@ class Mesh:
         bc_init = np.zeros((self.nnodes,2))
 
         # concat nodes array
-        self.nodes = np.concatenate((self.nnum,x,y,bc_init),axis=1)
+        self.nodes = np.concatenate((self.nnum,self.x,self.y,bc_init),axis=1)
 
         # log
         logger.info("initialized mesh")

@@ -78,14 +78,18 @@ class StructuralOptim(OptimModel):
 class Visualizer:
     def __init__(self,pmodel):
         self.model = pmodel
+        self.result = None
         colors = ["white", "grey","grey","blue"]
         nodes = [0.0, 0.4, 0.6,1.0]
-        self.cmap = LinearSegmentedColormap.from_list("mycmap", list(zip(nodes, colors)))   
+        self.cmap = LinearSegmentedColormap.from_list("mycmap", list(zip(nodes, colors)))
+
+    def _load_result(self):
+        ndiv = int(np.sqrt(len(self.model.x)))
+        self.result = self.model.x.reshape((ndiv,ndiv))
 
     def show_result(self):
-        ndiv = int(np.sqrt(len(self.model.x)))
-        x = self.model.x.reshape((ndiv,ndiv))
+        self._load_result()
         self.fig = plt.figure()
         self.axs = plt.gca()
-        self.axs.imshow(x,cmap=self.cmap)
+        self.axs.imshow(self.result,cmap=self.cmap,origin="lower")
         plt.show()

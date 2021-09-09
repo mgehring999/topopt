@@ -1,5 +1,9 @@
 from solidspy.preprocesor import rect_grid
+from topopt.logging import TopOptLogger
 import numpy as np
+
+import logging
+logger = logging.getLogger('topopt')
 
 class Mesh:
     """Mesh creates or loads and saves the information about the meshed domain
@@ -12,6 +16,8 @@ class Mesh:
         self.nnum = None
         self.nnodes = None
     
+        self.logger_handler = TopOptLogger("debug")
+
     def rect_mesh(self,ndiv: int):
         """
         defines quadratic domain meshed with QUAD4 elements
@@ -19,6 +25,7 @@ class Mesh:
         Paramters:
         ndiv: number of elements on each side of the domain
         """
+        logger.info("started meshing")
         if ndiv < 1:
             ValueError("ndiv must be greater or equal to one")
         x,y,self.elements = rect_grid(2,2,ndiv,ndiv)
@@ -38,6 +45,9 @@ class Mesh:
 
         # concat nodes array
         self.nodes = np.concatenate((self.nnum,x,y,bc_init),axis=1)
+
+        # log
+        logger.info("initialized mesh")
 
 
     def load_mesh(self):

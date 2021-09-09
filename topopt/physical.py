@@ -1,6 +1,9 @@
 import solidspy.assemutil as ass
 import numpy as np 
 
+import logging
+logger = logging.getLogger('topopt')
+
 class PhysicalModel:
     """
     A `PhysicalModel` combines the information about the discretized domain, its physical properties, the boundaries and all system matrices. 
@@ -22,6 +25,9 @@ class PhysicalModel:
         self.Fglob = None
         self.x = [1]*self.mesh.nelem
         
+        # log
+        logger.info("started application of boundary conditions")
+
         # apply boundary conditions
         self.mesh = self.boundary_conditions.apply(self.mesh)
         
@@ -29,6 +35,7 @@ class PhysicalModel:
         self.loads.apply(self.mesh)
 
         # assemble everything 
+        logger.info("starting assembly of physical system")
         self.mats = self._set_materials()
         self.assemble_system()
 

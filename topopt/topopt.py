@@ -5,11 +5,16 @@ from matplotlib.colors import LinearSegmentedColormap
 
 from pyomo.environ import *
 
+import logging
+logger = logging.getLogger('topopt')
+
 class OptimModel:
     def __init__(self,physical_model,volfrac):
         self.pmodel = physical_model
         self.vol = volfrac*sum(self.pmodel.x)
         self.result = None
+
+        logger.info("started assembly of optimization model")
 
         self.model = ConcreteModel(name="topo")
 
@@ -18,7 +23,9 @@ class OptimModel:
 
     def run(self):
         self.solver = SolverFactory("ipopt")
+        logger.info("started solution process")
         self.result = self.solver.solve(self.model,tee=True)
+        logger.info("finished solution process")
         self.pmodel.x = np.array([self.model.x[i].value for i in self.model.elems])
 
 class StructuralOptim(OptimModel):
@@ -26,8 +33,12 @@ class StructuralOptim(OptimModel):
         super().__init__(physical_model, volfrac)
         self.penal = penal
         self._init_system_matrices()
+        logger.info("initialized system matrices")
         self._make_constraints()
+        logger.info("made constraint functions")
         self._make_objective()
+        logger.info("made objective functions")
+
 
     def _init_system_matrices(self):
         self.model.x = Var(self.model.elems,bounds=(1e-5,1),initialize=1)
@@ -63,7 +74,6 @@ class StructuralOptim(OptimModel):
         m.K = self.pmodel.update_system_matrix()
 
         return sum([m.K.value[i][j]*m.u[j] for j in m.eq]) == m.F[i]
-
 
 class Visualizer:
     def __init__(self,pmodel):

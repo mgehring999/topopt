@@ -3,7 +3,7 @@ from topopt.physical import PhysicalModel, Material
 from topopt.mesh import Displacement, Load, Mesh
 
 volfrac = 0.5
-ndiv = 10
+ndiv = 20
 
 mesh = Mesh()
 mesh.rect_mesh(ndiv)
@@ -19,7 +19,7 @@ mat.set_structural_params(2.1e5,.3)
 
 pmodel = PhysicalModel(mesh,mat,support,loads)
 
-optimizer = StructuralOptim(pmodel,volfrac,3)
+optimizer = StructuralOptim(pmodel,volfrac,5)
 optimizer.run()
 
 visu = Visualizer(pmodel)

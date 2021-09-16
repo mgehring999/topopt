@@ -8,6 +8,10 @@ digraph topopt{
 
     "Structural Optimiziation" -> "Solvers complete"
     "Structural Optimiziation" -> "arbitrary meshes"
+    "Structural Optimiziation" -> "muliple objectives" 
+
+    "muliple objectives" -> "Stress Optimiziation"
+    "muliple objectives" -> "Compliance Optimiziation"
 
     "arbitrary meshes" -> "gmsh interface"
     "arbitrary meshes" -> "3D elements"

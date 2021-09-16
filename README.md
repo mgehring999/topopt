@@ -57,3 +57,9 @@ The same setup in ANSYS leads to a different result.
 - implement post processing of results (FEA for final design)
 - implement stress minimization 
 - implement [decogo](https://github.com/ouyang-w-19/decogo) and scip
+
+![TODO Graph](/docs/images/todos.png)
+
+testtesttest
+
+!<img src="/docs/images/todos.png" alt="TODO Graph" width="400"/>

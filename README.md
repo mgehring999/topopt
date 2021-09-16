@@ -59,7 +59,3 @@ The same setup in ANSYS leads to a different result.
 - implement [decogo](https://github.com/ouyang-w-19/decogo) and scip
 
 ![TODO Graph](/docs/images/todos.png)
-
-testtesttest
-
-!<img src="/docs/images/todos.png" alt="TODO Graph" width="400"/>

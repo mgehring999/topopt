@@ -1,0 +1,25 @@
+digraph topopt{
+    // General Settings
+    rankdir="LR"
+
+    "topopt-project" -> "Cooling Optimiziation"
+    "topopt-project" -> "Structural Optimiziation"
+    "topopt-project" -> "GUI"
+
+    "Structural Optimiziation" -> "Solvers complete"
+    "Structural Optimiziation" -> "arbitrary meshes"
+
+    "arbitrary meshes" -> "gmsh interface"
+    "arbitrary meshes" -> "3D elements"
+    "arbitrary meshes" -> "quadratic elements"
+    
+    "Cooling Optimiziation" -> "Theory"
+    "Cooling Optimiziation" -> "Implementation"
+    "Implementation" -> "add velocity BC"
+
+    "Solvers complete" -> "SCIP"
+    "Solvers complete" -> "decogo"
+        "SCIP" -> "compile SCIP"
+        "decogo" -> "compile SCIP"
+    
+}

@@ -39,7 +39,6 @@ class StructuralOptim(OptimModel):
         self._make_objective()
         logger.info("made objective functions")
 
-
     def _init_system_matrices(self):
         self.model.x = Var(self.model.elems,bounds=(1e-5,1),initialize=1)
         self.model.K = Param(initialize=self.pmodel.Kglob,default=0,mutable=True,within=Any) 
@@ -47,8 +46,9 @@ class StructuralOptim(OptimModel):
         self.model.u = Var(self.model.eq,initialize=dict(enumerate(sp.sparse.linalg.spsolve(self.pmodel.Kglob,self.pmodel.Fglob))))
 
     def _make_constraints(self):
-        self.model.FKU_con = Constraint(self.model.eq, rule=self._FKU_rule)
         self.model.vol_con = Constraint(rule=self._vol_rule)
+        logger.info("made volume rule")
+        self.model.FKU_con = Constraint(self.model.eq, rule=self._FKU_rule)
         
     def _make_objective(self):
         self.model.obj = Objective(expr=self._comp_rule(self.model),sense=minimize)
@@ -66,12 +66,16 @@ class StructuralOptim(OptimModel):
         return sum([m.x[j] for j in m.elems]) == self.vol 
 
     def _FKU_rule(self,m, i):
+        # logging
+        logger.debug("making CE for DOF number {}".format(i))
 
         # update material definition
         self.pmodel.x = [m.x[elem]**self.penal for elem in m.elems]
+        #logger.debug("updated x for DOF number {}".format(i))
 
         # update stiffness matrix and assign to model
         m.K = self.pmodel.update_system_matrix()
+        #logger.debug("updated K for DOF number {}".format(i))
 
         return sum([m.K.value[i][j]*m.u[j] for j in m.eq]) == m.F[i]
 

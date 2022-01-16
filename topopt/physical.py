@@ -49,33 +49,26 @@ class PhysicalModel:
 
     def assemble_system(self):
         self.DME , self.IBC , self.neq = ass.DME(self.mesh.nodes, self.mesh.elements)
-        self.K_zero = [ [0]*self.neq for _ in range(self.neq)]
         self.Kglob = self.update_system_matrix()
         self.Fglob = ass.loadasem(self.loads.loads,self.IBC,self.neq)
 
     def update_system_matrix(self):
-
         # initialize empty system matrix as list of lists
+        logger.debug("initialize stiffness matrix ...")
         Kglob = [ [0]*self.neq for _ in range(self.neq)]
-        logger.debug("init stiffness matrix")
 
         # update system matrix with optimiziation variable
         for el in range(self.mesh.nelem):
             kloc,ndof,_=ass.retriever(self.mesh.elements,self.mats,self.mesh.nodes,el)
             kloc = kloc.tolist()
             dme = self.DME[el,:ndof]
-            #print(dme)
             
             for row in range(ndof):
                 if dme[row] != -1:
                     for col in range(ndof):
                         if dme[col] != -1:
                             Kglob[dme[row]][dme[col]] += kloc[row][col]*self.x[el]
-            """
-            for idx in dme:
-                if idx != -1:
-                    Kglob[idx][idx] += kloc[idx][idx]*self.x[el]
-            """
+
         return Kglob
 
 class Material:

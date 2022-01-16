@@ -45,20 +45,23 @@ class StructuralOptim(OptimModel):
         self.model.F = Param(self.model.eq,initialize=dict(enumerate(self.pmodel.Fglob)),within=Any)
         self.model.u = Var(self.model.eq,initialize=dict(enumerate(sp.sparse.linalg.spsolve(self.pmodel.Kglob,self.pmodel.Fglob))))
 
+        # update material definition with pyomo reference for new stiffness matrix
+        self.pmodel.x = [self.model.x[elem]**self.penal for elem in self.model.elems]
+
+        # update stiffness matrix and assign to model
+        self.model.K = self.pmodel.update_system_matrix()
+
     def _make_constraints(self):
+        logger.info("making volume constraint ...")
         self.model.vol_con = Constraint(rule=self._vol_rule)
-        logger.info("made volume rule")
+
+        logger.info("making finite element equation constraint ...")
         self.model.FKU_con = Constraint(self.model.eq, rule=self._FKU_rule)
         
     def _make_objective(self):
         self.model.obj = Objective(expr=self._comp_rule(self.model),sense=minimize)
 
     def _comp_rule(self,m):
-        # update material definition
-        self.pmodel.x = [m.x[elem]**self.penal for elem in m.elems]
-
-        # update stiffness matrix and assign to model
-        m.K = self.pmodel.update_system_matrix()
         return sum([sum([m.K.value[row][col]*m.u[col] for col in m.eq])*m.u[row] for row in m.eq])
 
     # volume fraction
@@ -67,16 +70,8 @@ class StructuralOptim(OptimModel):
 
     def _FKU_rule(self,m, i):
         # logging
-        logger.debug("making CE for DOF number {}".format(i))
-
-        # update material definition
-        self.pmodel.x = [m.x[elem]**self.penal for elem in m.elems]
-        #logger.debug("updated x for DOF number {}".format(i))
-
-        # update stiffness matrix and assign to model
-        m.K = self.pmodel.update_system_matrix()
-        #logger.debug("updated K for DOF number {}".format(i))
-
+        if i % 100 == 0:
+            logger.debug("making CE for DOF number {}".format(i))
         return sum([m.K.value[i][j]*m.u[j] for j in m.eq]) == m.F[i]
 
 class Visualizer:

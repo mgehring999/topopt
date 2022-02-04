@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from topopt.topopt import StructuralOptim, Visualizer
 from topopt.physical import PhysicalModel, Material
 from topopt.mesh import Displacement, Load, Mesh

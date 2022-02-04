@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import solidspy.assemutil as ass
 import solidspy.solutil as sol
 import solidspy.postprocesor as pos

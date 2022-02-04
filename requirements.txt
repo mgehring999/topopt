@@ -1,6 +1,6 @@
-numpy==1.18.5
-scipy==1.5.3
+numpy
+scipy
 solidspy==1.0.16
 meshio==4.4.6
-matplotlib==3.3.2
+matplotlib
 Pyomo==5.7.1

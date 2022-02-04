@@ -19,7 +19,8 @@ This script models a quadratic plate clamped on the left side and loaded with a 
     from topopt.topopt import StructuralOptim, Visualizer
     from topopt.physical import PhysicalModel, Material
     from topopt.mesh import Displacement, Load, Mesh
-
+    import matplotlib.pyplot as plt
+    
     volfrac = 0.5
     ndiv = 20
 
@@ -41,7 +42,8 @@ This script models a quadratic plate clamped on the left side and loaded with a 
     optimizer.run()
 
     visu = Visualizer(pmodel)
-    visu.show_result()
+    visu.plot_result()
+    plt.show()
 ```
 
 The result is the follwing structure

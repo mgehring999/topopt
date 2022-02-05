@@ -25,8 +25,6 @@ class PhysicalModel:
         self.Fglob = None
         self.x = [1]*self.mesh.nelem
         
-        
-
         # log
         logger.info("started application of boundary conditions")
 
@@ -70,6 +68,9 @@ class PhysicalModel:
                             Kglob[dme[row]][dme[col]] += kloc[row][col]*self.x[el]
 
         return Kglob
+
+    def solve_system_eq(self):
+        return np.linalg.solve(self.Kglob,self.Fglob)
 
 class Material:
     def __init__(self):

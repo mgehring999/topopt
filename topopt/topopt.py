@@ -26,13 +26,21 @@ class OptimModel:
         logger.info("started solution process")
         self.result = self.solver.solve(self.model,tee=True)
         logger.info("finished solution process")
-        self.pmodel.x = np.array([self.model.x[i].value for i in self.model.elems])
+
+        # write the optimiziation variable back to the physical model
+        self.pmodel.x = np.array([getattr(self.model,"x{}".format(i)).value for i in self.model.elems])
 
 class StructuralOptim(OptimModel):
     def __init__(self, physical_model, volfrac, penal):
         super().__init__(physical_model, volfrac)
+        
+        # solve for the deformations to initialize optimiziation variables
+        self.u_init = physical_model.solve_system_eq()
+        
+        # build pyomo model
         self.penal = penal
         self._init_system_matrices()
+        self._init_optim_vars()
         logger.info("initialized system matrices")
         self._make_constraints()
         logger.info("made constraint functions")
@@ -40,13 +48,19 @@ class StructuralOptim(OptimModel):
         logger.info("made objective functions")
 
     def _init_system_matrices(self):
-        self.model.x = Var(self.model.elems,bounds=(1e-5,1),initialize=1)
         self.model.K = Param(initialize=self.pmodel.Kglob,default=0,mutable=True,within=Any) 
         self.model.F = Param(self.model.eq,initialize=dict(enumerate(self.pmodel.Fglob)),within=Any)
-        self.model.u = Var(self.model.eq,initialize=dict(enumerate(sp.sparse.linalg.spsolve(self.pmodel.Kglob,self.pmodel.Fglob))))
+
+    def _init_optim_vars(self):
+        # add deformation as optim vars to 
+        for dof,u_init in zip(range(self.pmodel.neq),self.u_init):
+            setattr(self.model,"u"+str(dof),Var(initialize=u_init))
+
+        for elem in range(self.pmodel.mesh.nelem):
+            setattr(self.model,"x"+str(elem),Var(bounds=(1e-5,1),initialize=1))
 
         # update material definition with pyomo reference for new stiffness matrix
-        self.pmodel.x = [self.model.x[elem]**self.penal for elem in self.model.elems]
+        self.pmodel.x = [getattr(self.model,"x"+str(elem))**self.penal for elem in self.model.elems]
 
         # update stiffness matrix and assign to model
         self.model.K = self.pmodel.update_system_matrix()
@@ -60,19 +74,19 @@ class StructuralOptim(OptimModel):
         
     def _make_objective(self):
         self.model.obj = Objective(expr=self._comp_rule(self.model),sense=minimize)
-
+        
     def _comp_rule(self,m):
-        return sum([sum([m.K.value[row][col]*m.u[col] for col in m.eq])*m.u[row] for row in m.eq])
+        return sum([sum([m.K.value[row][col]*getattr(m,"u{}".format(col)) for col in m.eq])*getattr(m,"u{}".format(row)) for row in m.eq])
 
     # volume fraction
     def _vol_rule(self,m):
-        return sum([m.x[j] for j in m.elems]) == self.vol 
+        return sum([getattr(m,"x"+str(j)) for j in m.elems]) == self.vol 
 
     def _FKU_rule(self,m, i):
         # logging
         if i % 100 == 0:
             logger.debug("making CE for DOF number {}".format(i))
-        return sum([m.K.value[i][j]*m.u[j] for j in m.eq]) == m.F[i]
+        return sum([m.K.value[i][j]*getattr(m,"u{}".format(j)) for j in m.eq]) == m.F[i]
 
 class Visualizer:
     def __init__(self,pmodel):

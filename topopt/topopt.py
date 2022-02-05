@@ -78,6 +78,11 @@ class Visualizer:
     def __init__(self,pmodel):
         self.model = pmodel
         self.result = None
+        
+        # default filename for read/write of optimization results
+        self.filename = "optim.rst"
+
+        # plot controls
         colors = ["white", "grey","grey","blue"]
         nodes = [0.0, 0.4, 0.6,1.0]
         self.cmap = LinearSegmentedColormap.from_list("mycmap", list(zip(nodes, colors)))
@@ -85,6 +90,28 @@ class Visualizer:
     def _load_result(self):
         ndiv = int(np.sqrt(len(self.model.x)))
         self.result = self.model.x.reshape((ndiv,ndiv))
+
+    def write_result(self,filename=None):
+        """
+        writes results from PhysicalModel to disk
+        """
+        # overwrite default filename if custom filename is provided
+        if filename:
+            self.filename = filename+".rst"
+
+        # write to text file
+        np.savetxt(self.filename,self.model.x)
+
+    def read_result(self,filename=None):
+        """
+        reads results from text file to self.result variable
+        """
+
+        if filename:
+            self.filename = filename
+        
+        self.result = np.loadtxt(self.filename)
+        print(self.result.shape)
 
     def show_result(self):
         self._load_result()

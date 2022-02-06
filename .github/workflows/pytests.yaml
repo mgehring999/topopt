@@ -36,7 +36,6 @@ jobs:
       run: |
         cd ~ && wget https://ampl.com/dl/open/ipopt/ipopt-linux64.zip && unzip ipopt-linux64.zip
         mv ~/ipopt /usr/local/bin
-        ipopt
 
     - name: Test with pytest
       run: |

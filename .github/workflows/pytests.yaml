@@ -33,10 +33,10 @@ jobs:
 #        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
     - name: setup IPOPT
-        run: |
-          cd /root/ && wget https://ampl.com/dl/open/ipopt/ipopt-linux64.zip && unzip ipopt-linux64.zip
-          mv /root/ipopt /bin
-          ipopt
+      run: |
+        cd /root/ && wget https://ampl.com/dl/open/ipopt/ipopt-linux64.zip && unzip ipopt-linux64.zip
+        mv /root/ipopt /bin
+        ipopt
 
     - name: Test with pytest
       run: |

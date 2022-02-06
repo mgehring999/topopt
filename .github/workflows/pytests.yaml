@@ -35,7 +35,7 @@ jobs:
     - name: setup IPOPT
       run: |
         cd ~ && wget https://ampl.com/dl/open/ipopt/ipopt-linux64.zip && unzip ipopt-linux64.zip
-        mv ~ /usr/local/bin
+        mv ~/ipopt /usr/local/bin
         ipopt
 
     - name: Test with pytest

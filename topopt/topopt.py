@@ -127,9 +127,8 @@ class Visualizer:
         self.result = np.loadtxt(self.filename)
         print(self.result.shape)
 
-    def show_result(self):
+    def plot_result(self):
         self._load_result()
         self.fig = plt.figure()
         self.axs = plt.gca()
-        self.axs.imshow(self.result,cmap=self.cmap,origin="lower")
-        plt.show()
+        return self.axs.imshow(self.result,cmap=self.cmap,origin="lower")

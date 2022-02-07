@@ -7,3 +7,4 @@ matlab/
 dist/
 *egg-info
 build/
+optim.rst

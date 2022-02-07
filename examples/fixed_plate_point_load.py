@@ -26,5 +26,7 @@ optimizer = StructuralOptim(pmodel,volfrac,5)
 optimizer.run()
 
 visu = Visualizer(pmodel)
+visu.write_result()
+
 visu.plot_result()
 plt.show()

@@ -5,15 +5,12 @@ This is a python implementation of a two-dimensional structural optimizitation f
 Install python requirements with pip
 ```
 pip install -r requirements.txt
-py setup.py install
 ```
-To setup the solver do the following steps
-- Download SCIPOptSuite 7.0.0 and scipampl 7.0.0 from [scipopt.org](https://scipopt.org/)
-- install scipOptSuite and put scipampl binary in scipOptSuite\bin
-- add \bin to PATH
+Download the IPOPT solver from [here](https://ampl.com/products/solvers/open-source/)
+Linux Users place it in the /bin directory and on Windows you put the path to the binary in the PATH system variable
 
 ## Example script
-This script models a quadratic plate clamped on the left side and loaded with a point force in the middle of the right edge. The plate is discretized with 100 linear plate elements. The optimization goal is to delete 50% of the volume and minimize the compliance. 
+This script models a quadratic plate clamped on the left side and loaded with a point force in the middle of the right edge. The plate is discretized with 400 linear plate elements. The optimization goal is to delete 50% of the volume and minimize the compliance. 
 
 ```python
     from topopt.topopt import StructuralOptim, Visualizer
@@ -42,6 +39,8 @@ This script models a quadratic plate clamped on the left side and loaded with a 
     optimizer.run()
 
     visu = Visualizer(pmodel)
+    visu.write_result()
+
     visu.plot_result()
     plt.show()
 ```
@@ -55,7 +54,6 @@ The same setup in ANSYS leads to a different result.
 
 ## ToDo's
 - implement interface for arbitrary meshes and geometries
-- save and load resultfile
 - implement post processing of results (FEA for final design)
 - implement stress minimization 
 - implement [decogo](https://github.com/ouyang-w-19/decogo) and scip

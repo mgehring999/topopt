@@ -17,10 +17,10 @@ class OptimModel:
         logger.info("started assembly of optimization model")
 
         self.model = ConcreteModel(name="topo")
-
+        
         self.model.elems = Set(initialize=self.pmodel.mesh.elements[:,0],domain=NonNegativeIntegers)
         self.model.eq = Set(initialize=range(self.pmodel.neq),domain=NonNegativeIntegers)
-
+        
     def run(self):
         self.solver = SolverFactory("ipopt")
         logger.info("started solution process")
@@ -48,7 +48,7 @@ class StructuralOptim(OptimModel):
         logger.info("made objective functions")
 
     def _init_system_matrices(self):
-        self.model.K = Param(initialize=self.pmodel.Kglob,default=0,mutable=True,within=Any) 
+        self.model.K = Param(initialize=self.pmodel.Kglob.tolist(),default=0,mutable=True,within=Any) 
         self.model.F = Param(self.model.eq,initialize=dict(enumerate(self.pmodel.Fglob)),within=Any)
 
     def _init_optim_vars(self):
@@ -63,12 +63,14 @@ class StructuralOptim(OptimModel):
         self.pmodel.x = [getattr(self.model,"x"+str(elem))**self.penal for elem in self.model.elems]
 
         # update stiffness matrix and assign to model
-        self.model.K = self.pmodel.update_system_matrix()
+        Ktemp = self.pmodel.update_system_matrix()
+        Ktemp = np.delete(Ktemp,self.pmodel.constrained_dofs,axis=0)
+        self.model.K = np.delete(Ktemp,self.pmodel.constrained_dofs,axis=1)
+        
 
     def _make_constraints(self):
         logger.info("making volume constraint ...")
         self.model.vol_con = Constraint(rule=self._vol_rule)
-
         logger.info("making finite element equation constraint ...")
         self.model.FKU_con = Constraint(self.model.eq, rule=self._FKU_rule)
         

@@ -4,16 +4,16 @@ import numpy as np
 def test_DomianWdith():
     mesh = Mesh()
     mesh.rect_mesh(5)
-    xmin = min(mesh.x)
-    xmax = max(mesh.x)
+    xmin = min(mesh.nodal_coords[:,0])
+    xmax = max(mesh.nodal_coords[:,0])
     
     assert np.isclose(xmax - xmin,2)
 
 def test_DomianHeigth():
     mesh = Mesh()
     mesh.rect_mesh(5)
-    ymin = min(mesh.y)
-    ymax = max(mesh.y)
+    ymin = min(mesh.nodal_coords[:,1])
+    ymax = max(mesh.nodal_coords[:,1])
     
     assert np.isclose(ymax - ymin,2)
 
@@ -23,4 +23,4 @@ def test_NodesArrayDims():
     
     shape = mesh.nodes.shape
 
-    assert shape[0] == 36 and shape[1] == 5
+    assert shape[0] == 36 and shape[1] == 4

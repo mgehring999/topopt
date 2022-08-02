@@ -7,18 +7,16 @@ from topopt.topopt import StructuralOptim, Visualizer
 import matplotlib.pyplot as plt
 
 volfrac = 0.5
-ndiv = 40
+ndiv = 20
 
 mesh = Mesh()
 mesh.rect_mesh(ndiv)
-print(mesh.nodal_coords)
 
 force = Force(mesh)
 force.add_by_point((1,0),-1,dof=2)
 
 support = Displacement(mesh)
 support.add_by_plane([1,0],-1,0)
-print(support.values)
 
 mat = Material()
 mat.set_structural_params(2.1e5,.3)

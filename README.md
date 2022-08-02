@@ -24,16 +24,17 @@ This script models a quadratic plate clamped on the left side and loaded with a 
     mesh = Mesh()
     mesh.rect_mesh(ndiv)
 
-    loads = Load(mesh)
-    loads.add_by_coord((1,0),(0,-1))
+    force = Force(mesh)
+    force.add_by_point((1,0),-1,dof=2)
 
-    support = Displacement()
-    support.add_by_edge("left","all")
+    support = Displacement(mesh)
+    support.add_by_plane([1,0],-1,0)
 
     mat = Material()
     mat.set_structural_params(2.1e5,.3)
 
-    pmodel = PhysicalModel(mesh,mat,support,loads)
+    bcs = [force,support]
+    pmodel = PhysicalModel(mesh,mat,bcs)
 
     optimizer = StructuralOptim(pmodel,volfrac,5)
     optimizer.run()

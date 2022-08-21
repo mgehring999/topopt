@@ -43,8 +43,8 @@ class Mesh:
 
         x = x.reshape((self.nnodes,1))
         y = y.reshape((self.nnodes,1))
-        z = np.zeros_like(x)
-        self.nodal_coords = np.concatenate((x,y,z),axis=1)
+        #z = np.zeros_like(x)
+        self.nodal_coords = np.concatenate((x,y),axis=1) #,z
 
         self.nodes = self._make_nodes_array()
 

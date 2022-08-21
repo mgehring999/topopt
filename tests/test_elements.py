@@ -19,5 +19,5 @@ mat.set_structural_params(2.1e5,0.3)
 
 fem = FEModel(mesh,mat,StructuralElement)
 
-def test_structural_quad4():
+def structural_quad4():
     kloc,_,_ = retriever(element,mats,nodes,0)

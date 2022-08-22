@@ -14,5 +14,10 @@ mesh.rect_mesh(ndiv)
 mat = Material()
 mat.set_thermal_params(0.05)
 
+temp = Temperature(mesh)
+temp.add_by_plane([1,0],-1,100)
+temp.add_by_plane([1,0],1,20)
+
 fem = FEModel(mesh,mat,ThermalElement)
-fem.assemble()
+t = fem.solve(temp)
+print(t)

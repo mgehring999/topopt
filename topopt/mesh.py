@@ -60,7 +60,7 @@ class BoundaryCondition:
         self.mesh = mesh
         self.dofs = dofs
         self.values = np.array([])
-
+    
     # methods to add boundary conditions
     def add_by_point(self,coord,value,dof=None):
         
@@ -115,6 +115,19 @@ class BoundaryCondition:
             return np.concatenate((old_bc_array,new_bcs),axis=0)
         else:
             return new_bcs
+    @property
+    def nodes(self):
+        return self.values[:,0].astype(int)
+    def _pick_idx_constrained_dofs(self):
+        return self.values[:,self.dofs+1:].astype(bool)
+    def get_constrained_dofs(self,node_to_dof_map):
+        dofs = node_to_dof_map[self.values[:,0].astype(int)] 
+        idx_dofs = self._pick_idx_constrained_dofs()
+        return dofs[idx_dofs]
+    def get_constrained_values(self):
+        values = self.values[:,1:self.dofs+1]
+        idx_dofs = self._pick_idx_constrained_dofs()
+        return values[idx_dofs]
 
 class Displacement(BoundaryCondition):
     def __init__(self,mesh):

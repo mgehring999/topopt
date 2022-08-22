@@ -1,5 +1,6 @@
 import numpy as np
 import logging
+from topopt.mesh import Displacement,Force
 
 logger = logging.getLogger('topopt')
 
@@ -8,9 +9,10 @@ class FEModel:
         self.elements = mesh.elements
         self.nodes = mesh.nodal_coords
         self.dofs_per_node = ElementTypeClass.dofs_per_node
+        self.ndofs = mesh.nnodes * self.dofs_per_node
 
-        node_to_dof_map = self._make_node_to_dof_map(self.nodes,self.dofs_per_node)
-        self.elem_to_dof_map = self._make_elem_to_dof_map(self.elements,node_to_dof_map)
+        self.node_to_dof_map = self._make_node_to_dof_map(self.nodes,self.dofs_per_node)
+        self.elem_to_dof_map = self._make_elem_to_dof_map(self.elements,self.node_to_dof_map)
 
         # instantiate element type for each unique 
         # element and material combination
@@ -22,9 +24,12 @@ class FEModel:
         for e in range(1,len(self.ets)+1):
             logger.info("Element Type {}, {}".format(e,self.ets[e].__str__()))
 
+        # assemble system matrix
+        self._assemble()
+
     def _make_node_to_dof_map(self,nodes,ndofs):
         nnodes = nodes.shape[0]
-        dofs = np.arange(1,nnodes*ndofs+1)
+        dofs = np.arange(nnodes*ndofs)
         return dofs.reshape((nnodes,ndofs))
 
     def _make_elem_to_dof_map(self,elements,node_to_dof_map):
@@ -35,7 +40,8 @@ class FEModel:
             elem_to_dof_map[idx,:] = dofs_on_elem
         return elem_to_dof_map
 
-    def assemble(self):
+    def _assemble(self):
+        self._K = np.zeros((self.ndofs,self.ndofs))
         for el in self.elements:
             el_no = el[0]
             et_no = el[1]
@@ -43,10 +49,56 @@ class FEModel:
             nodal_coords = self.nodes[nodes_on_elem]
             dofs = self.elem_to_dof_map[el_no]
             kl = self.ets[et_no].kloc(nodal_coords)
-        print(kl)
+            rows = np.tile(dofs.reshape(len(dofs),1),len(dofs))
+            cols = np.tile(dofs.reshape(1,len(dofs)),(len(dofs),1))
+            self._K[rows,cols] += kl
 
-    def get_matrix():
+    @property
+    def K(self):
+        return self._K
+    
+    def apply_bcs(bcs):
         pass
+
+    def solve(self,support,load=None):
+        neq = self._K.shape[0]
+        F = np.zeros(neq)
+        u = np.zeros(neq)
+
+        dofs = np.arange(neq)
+        constrained_dofs = support.get_constrained_dofs(self.node_to_dof_map)
+        unconstrained_dofs = np.delete(dofs,constrained_dofs)
+        constrained_u = support.get_constrained_values()
+        u[constrained_dofs] = constrained_u
+
+        if not load is None:
+            loaded_dofs = load.get_constrained_dofs(self.node_to_dof_map)
+            loaded_values = load.get_constrained_values()
+        else:
+            loaded_dofs = []
+            loaded_values = []
+
+        F[loaded_dofs] = loaded_values
+        
+        # separate rows and cols for known dofs from those for unknown dofs
+        Kk = self._K[np.ix_(constrained_dofs,constrained_dofs)]
+        Kku = self._K[np.ix_(unconstrained_dofs,constrained_dofs)]
+        Ku = np.delete(self._K,constrained_dofs,axis=0)
+        Ku = np.delete(Ku,constrained_dofs,axis=1)
+        
+        Fu = np.delete(F,constrained_dofs)
+        uk = u[constrained_dofs]
+        uu = np.delete(u,constrained_dofs)
+
+        # solve
+        uu = np.linalg.solve(Ku,Fu-np.dot(Kku,uk))
+
+        # reassemble system variable
+        u = np.concatenate((uu,uk))
+        dofs_unsorted = np.concatenate((unconstrained_dofs,constrained_dofs))
+        idx_sort_u = np.argsort(dofs_unsorted)
+
+        return u[idx_sort_u]
 
 class ElementTypeBase:
     def __init__(self,et):

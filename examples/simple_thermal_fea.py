@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 
-from topopt.physical import PhysicalModel, Material
+from topopt.physical import Material
 from topopt.mesh import Mesh, Temperature
 from fem.fem import FEModel,ThermalElement
 
+from utils.post import plot_dof
 import matplotlib.pyplot as plt
 
 ndiv = 20
@@ -20,4 +21,6 @@ temp.add_by_plane([1,0],1,20)
 
 fem = FEModel(mesh,mat,ThermalElement)
 t = fem.solve(temp)
-print(t)
+
+plot_dof(fem,t,0)
+plt.show()

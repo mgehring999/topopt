@@ -23,4 +23,4 @@ def test_NodesArrayDims():
     
     shape = mesh.nodes.shape
 
-    assert shape[0] == 36 and shape[1] == 4
+    assert shape[0] == 36 and shape[1] == 3

@@ -44,7 +44,6 @@ class PhysicalModel:
             nodes = np.concatenate((self.mesh.nodes,np.zeros((self.mesh.nnodes,2))),axis=1)
             self.element_to_dof_map , self.node_to_dof_map , self.ndof = ass.DME(nodes, self.mesh.elements)
             self.Kglob = np.array(self.update_system_matrix())
-            print("Dims, first assem",self.Kglob.shape)
 
         # apply boundary conditions and assemble load vectors
         for bc in self.bcs:
@@ -70,7 +69,6 @@ class PhysicalModel:
                 self.constrained_dofs = bc_node_dofs[idx_constrained_dofs]
                 u_constrained = bc.values[:,1:bc.dofs+1]
                 self.U_constrained = u_constrained[bc.values[:,bc.dofs+1:].astype(bool)]
-                print(self.constrained_dofs)
                 # apply constraints by deleting equations 
                 self.F_constrained = self.Fglob[self.constrained_dofs]
                 self.K_constrained = self.Kglob[np.ix_(self.constrained_dofs,self.constrained_dofs)]
@@ -78,7 +76,6 @@ class PhysicalModel:
                 self.Uglob = np.delete(self.Uglob,self.constrained_dofs)
                 self.Kglob = np.delete(self.Kglob,self.constrained_dofs,axis=0)
                 self.Kglob = np.delete(self.Kglob,self.constrained_dofs,axis=1)
-                print("Dims, after bc application",self.Kglob.shape)
                 
                 self.neq = len(self.Uglob)
 
@@ -108,7 +105,6 @@ class PhysicalModel:
                         if not dme[col] in self.constrained_dofs:
                             #print(dme[row],dme[col])
                             Kglob[dme[row]][dme[col]] += kloc[row][col]*self.x[el]
-
         return Kglob
 
     def solve_system_eq(self):
@@ -118,7 +114,10 @@ class Material:
     def __init__(self):
         self.nu = None
         self.youngs = None
-        
+        self.k = None
+
     def set_structural_params(self,youngs,nu):
         self.youngs = youngs
         self.nu = nu
+    def set_thermal_params(self,k):
+        self.k = k

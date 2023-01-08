@@ -13,11 +13,12 @@ Linux Users place it in the /bin directory and on Windows you put the path to th
 This script models a quadratic plate clamped on the left side and loaded with a point force in the middle of the right edge. The plate is discretized with 400 linear plate elements. The optimization goal is to delete 50% of the volume and minimize the compliance. 
 
 ```python
-    from topopt.topopt import StructuralOptim, Visualizer
     from topopt.physical import PhysicalModel, Material
-    from topopt.mesh import Displacement, Load, Mesh
+    from topopt.mesh import Mesh, Displacement, Force
+    from topopt.topopt import StructuralOptim, Visualizer
+
     import matplotlib.pyplot as plt
-    
+
     volfrac = 0.5
     ndiv = 20
 
@@ -34,6 +35,7 @@ This script models a quadratic plate clamped on the left side and loaded with a 
     mat.set_structural_params(2.1e5,.3)
 
     bcs = [force,support]
+
     pmodel = PhysicalModel(mesh,mat,bcs)
 
     optimizer = StructuralOptim(pmodel,volfrac,5)

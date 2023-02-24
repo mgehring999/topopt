@@ -22,6 +22,5 @@ setup(
         'Topic :: Software Development',
         'Topic :: Scientific/Engineering',
     ],
-    #package_dir = {"":"topopt"},
     packages=find_packages(exclude=["tests","docs"])
 )

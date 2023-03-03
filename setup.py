@@ -1,4 +1,4 @@
-from setuptools import setup,find_packages
+from setuptools import setup
 
 def read(filename):
     with open(filename) as fp:
@@ -22,5 +22,5 @@ setup(
         'Topic :: Software Development',
         'Topic :: Scientific/Engineering',
     ],
-    packages=find_packages(exclude=["tests","docs"])
+    package_dir={"topopt":"topopt","fem":"fem"}
 )

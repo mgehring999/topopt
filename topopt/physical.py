@@ -41,8 +41,8 @@ class PhysicalModel:
             self.mats = self._set_materials()
 
             # assemble stiffness matrix
-            nodes = np.concatenate((self.mesh.nodes,np.zeros((self.mesh.nnodes,2))),axis=1)
-            self.element_to_dof_map , self.node_to_dof_map , self.ndof = ass.DME(nodes, self.mesh.elements)
+            nodes = np.zeros((self.mesh.nnodes,2))
+            self.element_to_dof_map , self.node_to_dof_map , self.ndof = ass.DME(nodes, self.mesh.elements,ndof_el_max=8)
             self.Kglob = np.array(self.update_system_matrix())
 
         # apply boundary conditions and assemble load vectors
@@ -95,9 +95,10 @@ class PhysicalModel:
 
         # update system matrix with optimiziation variable
         for el in range(self.mesh.nelem):
-            kloc,ndof,_=ass.retriever(self.mesh.elements,self.mats,self.mesh.nodes,el)
+            kloc,_=ass.retriever(self.mesh.elements,self.mats,self.mesh.nodes,el)
             kloc = kloc.tolist()
-            dme = self.element_to_dof_map[el,:ndof]
+            dme = self.element_to_dof_map[el,:]
+            ndof = len(dme)
             #print(el,dme)
             for row in range(ndof):
                 if not dme[row] in self.constrained_dofs:

@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+import random
+import torch
 
 import numpy as np
 from topopt.physical import Material
@@ -15,6 +17,10 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
 
 from torch.utils.tensorboard import SummaryWriter
+
+np.random.seed(42)
+random.seed(42)
+torch.manual_seed(42)
 
 logger = logging.getLogger('topopt')
 tb_writer= SummaryWriter()
@@ -39,7 +45,6 @@ fem = FEModel(mesh,mat,StructuralElement)
 episodes = 50000
 batch_size = 40
 
-
 env = TopoEnv(fem,support,load)
 state_size = 2*ndiv**2
 action_size = ndiv**2 
@@ -56,15 +61,8 @@ for episode in range(episodes):
     total_reward = 0
     reward_series=[]
     start_time = timer()
+
     while True:
-        # # select action with actor critic rl
-        # action_one_hot,action_log_prob = agent.select_action(state)
-        # action = np.argmax(action_one_hot)
-
-        # next_state,reward,done = env.step(action)
-        # agent.update(state, action_log_prob, reward, next_state, done)
-
-        # dqn agent
         action = agent.select_action(state)
         next_state, reward, done = env.step(action)
         agent.remember(state, action, reward, next_state, done)
@@ -86,7 +84,7 @@ for episode in range(episodes):
 
             break
 
-    agent.replay(batch_size)
+        agent.replay(batch_size)
     
     tb_writer.add_scalar("Total Reward",total_reward,episode)
     tb_writer.add_scalar("Number of Iterations",env.count,episode)

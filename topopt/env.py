@@ -1,4 +1,4 @@
-import torch
+import torch,sys
 import numpy as np
 
 class TopoModel:
@@ -22,6 +22,7 @@ class TopoModel:
         self.Fvec = np.zeros(self.model.ndofs)
         self.Fvec[load.get_constrained_dofs(self.model.node_to_dof_map)] = load.get_constrained_values()
         self.Fvec = torch.Tensor(np.delete(self.Fvec,self.constrained_dofs))
+        self.loaded_dofs=load.get_constrained_dofs(self.model.node_to_dof_map)
 
         # init Kmat with bcs applied
         # Kidx holds all equation numbers of unconstrained dofs
@@ -77,6 +78,17 @@ class TopoEnv():
         self.init_vol = sum(self.elem_state)
         self.u = None
 
+        self.constrained_elem = np.zeros(self.model.nelem,dtype=int)
+        for idx,edofs in enumerate(self.model.e2dofmap):
+            for dof in edofs:
+                if dof in self.model.constrained_dofs:
+                    self.constrained_elem[idx] = 1
+
+        self.loaded_elem = np.zeros(self.model.nelem,dtype=int)
+        for idx,edofs in enumerate(self.model.e2dofmap):
+            for dof in edofs:
+                if dof in self.model.loaded_dofs:
+                    self.loaded_elem[idx] = 1
 
     def reset(self):
         # all elements in the design space are active
@@ -95,7 +107,7 @@ class TopoEnv():
         self.count = 0
         self.init_strain_energy = sum(strain_en)
 
-        return np.concatenate((self.elem_state,strain_en),axis=0)
+        return np.concatenate((self.elem_state,strain_en,self.constrained_elem,self.loaded_elem),axis=0)
 
     def step(self,action):
         # substract selected element from stiffness matrix
@@ -120,4 +132,4 @@ class TopoEnv():
 
         self.count += 1
         self.elem_taken.append(action)
-        return np.concatenate((self.elem_state,new_strain_en),axis=0),reward,done 
+        return np.concatenate((self.elem_state,new_strain_en,self.constrained_elem,self.loaded_elem),axis=0),reward,done 

@@ -11,7 +11,7 @@ from timeit import default_timer as timer
 
 from utils.post import plot_dof
 from topopt.env import TopoEnv
-from topopt.rl import A2CAgent,DQNAgent
+from topopt.rl import DQNAgent
 
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
@@ -46,7 +46,7 @@ episodes = 50000
 batch_size = 40
 
 env = TopoEnv(fem,support,load)
-state_size = 2*ndiv**2
+state_size = 4*ndiv**2
 action_size = ndiv**2 
 agent = DQNAgent(state_size,action_size)
 

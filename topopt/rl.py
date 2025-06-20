@@ -45,7 +45,7 @@ class DQNAgent:
         self.action_size = action_size
         self.gamma = 0.99  # discount rate
         self.epsilon = 1.  # exploration rate
-        self.epsilon_decay = 0.999
+        self.epsilon_decay = 0.9999
         self.epsilon_min = 0.1
         self.model = DQNNetwork(state_size, action_size)
         self.target_model = DQNNetwork(state_size, action_size)

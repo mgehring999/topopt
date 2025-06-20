@@ -90,6 +90,9 @@ class TopoEnv():
                 if dof in self.model.loaded_dofs:
                     self.loaded_elem[idx] = 1
 
+        # save latest history until env reset
+        self.history = None
+        
     def reset(self):
         # all elements in the design space are active
         self.elem_state = np.ones(self.model.nelem,dtype=int)
@@ -107,9 +110,13 @@ class TopoEnv():
         self.count = 0
         self.init_strain_energy = sum(strain_en)
 
-        return np.concatenate((self.elem_state,strain_en,self.constrained_elem,self.loaded_elem),axis=0)
+        # reset history at the end of the trajectory
+        self.history = []
+        self.env_state = (self.elem_state,strain_en,self.constrained_elem,self.loaded_elem)
+        return np.concatenate(self.env_state,axis=0)
 
     def step(self,action):
+
         # substract selected element from stiffness matrix
         self.model.kill_elem(action)
         self.elem_state[action] = 0
@@ -132,4 +139,9 @@ class TopoEnv():
 
         self.count += 1
         self.elem_taken.append(action)
-        return np.concatenate((self.elem_state,new_strain_en,self.constrained_elem,self.loaded_elem),axis=0),reward,done 
+        self.env_state = (self.elem_state,new_strain_en,self.constrained_elem,self.loaded_elem)
+
+        # save items for trajectory
+        self.history.append(([arr.tolist() for arr in self.env_state],action,reward))
+
+        return np.concatenate(self.env_state,axis=0),reward,done 

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import random
 import torch
+import json
 
 import numpy as np
 from topopt.physical import Material
@@ -26,7 +27,7 @@ logger = logging.getLogger('topopt')
 tb_writer= SummaryWriter()
 
 # Mesh and Model init
-ndiv = 20
+ndiv = 6
 mesh = Mesh()
 mesh.rect_mesh(ndiv)
 
@@ -42,8 +43,8 @@ load.add_by_point((1,0),(0,-100))
 fem = FEModel(mesh,mat,StructuralElement)
 
 # RL Training
-episodes = 50000
-batch_size = 40
+episodes = 5000
+batch_size = 100
 
 env = TopoEnv(fem,support,load)
 state_size = 4*ndiv**2
@@ -55,14 +56,17 @@ colors = ["white", "grey","grey","blue"]
 nodes = [0.0, 0.4, 0.6,1.0]
 cmap = LinearSegmentedColormap.from_list("mycmap", list(zip(nodes, colors)))
 
+trajectories = {}
+
 logger.info("starts training loop")
 for episode in range(episodes):
     state = env.reset()
     total_reward = 0
     reward_series=[]
     start_time = timer()
+    done = False 
 
-    while True:
+    while not done:
         action = agent.select_action(state)
         next_state, reward, done = env.step(action)
         agent.remember(state, action, reward, next_state, done)
@@ -71,21 +75,26 @@ for episode in range(episodes):
         total_reward += reward
         reward_series.append(total_reward)
 
+        agent.replay(batch_size)
+
         if "plot" in sys.argv: 
             np.save("out.npy",env.elem_state)
 
         if "save" in sys.argv:
             axs[0].imshow(env.elem_state.reshape((ndiv,ndiv)),cmap=cmap,origin="lower")
-            plt.savefig("output/elem_state_{}.png".format(episode))
-        
+            axs[1].plot(reward_series)
+            plt.savefig("output/elem_state_{}.png".format(episode+1))
+            for a in axs: a.cla()
+
         if done:
             end_time = timer()
             print(f"Episode: {episode + 1}, Total Reward: {total_reward}, Time: {end_time-start_time}, Iterations: {env.count}, Exploration rate: {agent.epsilon}")
 
-            break
+    # write trajectories
+    trajectories[episode+1] = env.history
+    with open("trajectories.json","w+") as f:
+        json.dump(trajectories,f)
 
-        agent.replay(batch_size)
-    
     tb_writer.add_scalar("Total Reward",total_reward,episode)
     tb_writer.add_scalar("Number of Iterations",env.count,episode)
     tb_writer.add_scalar("Strain Reward",env.strain_reward,episode)
